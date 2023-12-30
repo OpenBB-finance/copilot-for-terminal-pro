@@ -9,7 +9,7 @@ import os
 import openai
 from openai import OpenAI
 
-OPENAI_API_KEY = "REPLACE_ME"
+OPENAI_API_KEY = "***REMOVED***"
 
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 openai.api_key = OPENAI_API_KEY
@@ -21,7 +21,7 @@ from typing import List, Union, Dict
 from pydantic import BaseModel
 
 class GohAnalystOutput(BaseModel):
-    output: List[Union[str, Dict]]
+    output: str
 
 app = FastAPI()
 
@@ -71,4 +71,4 @@ def gohanalyst(user_prompt: str):
     print(result)
     
     # convert df to json
-    return {"output": [result]}
+    return {"output": result}
