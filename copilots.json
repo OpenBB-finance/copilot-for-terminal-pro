@@ -1,0 +1,8 @@
+{
+    "gohanalyst": {
+        "name": "Goh Analyst",
+        "description": "AI-powered financial analyst who has access to over 100+ financial datasets through OpenBB.",
+        "image": "https://github.com/DidierRLopes/my-website/assets/25267873/114de689-2a1c-4c80-bc60-158dfd7b14c0",
+        "link": "https://localhost:5000/"
+    }
+}
