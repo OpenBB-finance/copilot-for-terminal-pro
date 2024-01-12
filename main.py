@@ -23,6 +23,10 @@ from pydantic import BaseModel
 class GohAnalystOutput(BaseModel):
     output: str
 
+class GohAnalystInput(BaseModel):
+    query: str
+    context: str
+
 app = FastAPI()
 
 origins = [
@@ -55,15 +59,16 @@ def get_copilots():
     )
 
 
-@app.get("/gohanalyst", response_model=GohAnalystOutput)
-def gohanalyst(user_prompt: str):
+@app.post("/gohanalyst", response_model=GohAnalystOutput)
+def gohanalyst(body: GohAnalystInput):
     """Return output from GohAnalyst"""
+    query = body.query
 
     completion = client.chat.completions.create(
         model="gpt-4-1106-preview",
         messages=[
             {"role": "system", "content": "You are an expert financial analyst with 30 years of experience. You write answers that are extremely concise and short, but slightly sarcastic."},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "content": query}
         ]
     )
     result = completion.choices[0].message.content
