@@ -63,12 +63,13 @@ def get_copilots():
 def gohanalyst(body: GohAnalystInput):
     """Return output from GohAnalyst"""
     query = body.query
+    context = body.context
 
     completion = client.chat.completions.create(
         model="gpt-4-1106-preview",
         messages=[
             {"role": "system", "content": "You are an expert financial analyst with 30 years of experience. You write answers that are extremely concise and short, but slightly sarcastic."},
-            {"role": "user", "content": query}
+            {"role": "user", "content": f"## Context\n\nYou have the following context available to answer your query:\n${context}\n\n## User query\n{query}"}
         ]
     )
     result = completion.choices[0].message.content
