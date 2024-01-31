@@ -1,32 +1,21 @@
+import re
 import json
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
 
-import os
-import openai
-from openai import OpenAI
 
-OPENAI_API_KEY = ""
+from dotenv import load_dotenv
+from models import AgentQueryRequest
+from prompts import SYSTEM_PROMPT
 
-os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
-openai.api_key = OPENAI_API_KEY
 
-client = OpenAI()
-
-from typing import List, Union, Dict
-
-from pydantic import BaseModel
-
-class GohAnalystOutput(BaseModel):
-    output: str
-
-class GohAnalystInput(BaseModel):
-    query: str
-    context: str
-
+load_dotenv(".env")
 app = FastAPI()
 
 origins = [
@@ -46,35 +35,45 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-def read_root():
-    return {"Info": "Bring my collection of copilots to the OpenBB Terminal Pro"}
+def sanitize_message(message: str) -> str:
+    """Sanitize a message by escaping forbidden characters."""
+    cleaned_message = re.sub(r"(?<!\{)\{(?!{)", "{{", message)
+    cleaned_message = re.sub(r"(?<!\})\}(?!})", "}}", cleaned_message)
+    return cleaned_message
 
 
 @app.get("/copilots.json")
-def get_copilots():
+def get_copilot_description():
     """Widgets configuration file for the OpenBB Terminal Pro"""
     return JSONResponse(
-        content=json.load((Path(__file__).parent.resolve() / "copilots.json").open())
+        content=json.load(open((Path(__file__).parent.resolve() / "copilots.json")))
     )
 
 
-@app.post("/gohanalyst", response_model=GohAnalystOutput)
-def gohanalyst(body: GohAnalystInput):
-    """Return output from GohAnalyst"""
-    query = body.query
-    context = body.context
-
-    completion = client.chat.completions.create(
-        model="gpt-4-1106-preview",
-        messages=[
-            {"role": "system", "content": "You are an expert financial analyst with 30 years of experience. You write answers that are extremely concise and short, but slightly sarcastic."},
-            {"role": "user", "content": f"## Context\n\nYou have the following context available to answer your query:\n${context}\n\n## User query\n{query}"}
+@app.post("/query")
+def query(request: AgentQueryRequest) -> StreamingResponse:
+    """Query the Copilot."""
+    chat_messages = (
+        [
+            (message.role, sanitize_message(message.content))
+            for message in request.messages
         ]
+        if request.messages
+        else []
     )
-    result = completion.choices[0].message.content
 
-    print(result)
-    
-    # convert df to json
-    return {"output": result}
+    template = ChatPromptTemplate.from_messages(
+        [("system", SYSTEM_PROMPT), *chat_messages, ("human", "User query: {query}")]
+    )
+
+    output_parser = StrOutputParser()
+    model = ChatOpenAI(model="gpt-4-turbo-preview", temperature=0.1)
+
+    chain = template | model | output_parser
+    stream = chain.stream(
+        {
+            "query": request.query,
+            "context": request.context,
+        }
+    )
+    return StreamingResponse(stream, media_type="text/event-stream")
