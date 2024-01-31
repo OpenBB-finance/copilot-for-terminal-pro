@@ -2,7 +2,7 @@
 	"example_copilot": {
 		"name": "Example Co. Copilot",
 		"description": "AI-powered financial analyst fine-tuned by Example Co. to answer in the company-approved tone.",
-		"image": "https://github.com/DidierRLopes/my-website/assets/25267873/114de689-2a1c-4c80-bc60-158dfd7b14c0",
+		"image": "https://github.com/OpenBB-finance/copilot-for-terminal-pro/blob/feature/make-example-copilot/logo.png",
 		"link": "http://localhost:8000/query",
 		"hasStreaming": true
 	}
