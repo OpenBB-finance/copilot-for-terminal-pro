@@ -53,6 +53,7 @@ def get_copilot_description():
 @app.post("/query")
 def query(request: AgentQueryRequest) -> StreamingResponse:
     """Query the Copilot."""
+    print(request)
     chat_messages = (
         [
             (message.role, sanitize_message(message.content))
