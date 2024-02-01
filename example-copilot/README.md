@@ -1,8 +1,6 @@
-# Terminal Pro "bring your own copilot" example
-Welcome to the example repository for integrating a custom copilot into OpenBB
-Terminal Pro. This repository provides a reference implementation to help you
-create and add your own custom copilot to enhance the capabilities of Terminal
-Pro.
+# Basic example copilot
+This example provides a basic copilot that only does question and answering,
+using a custom System prompt.
 
 ## Overview
 This implementation utilizes a FastAPI application to serve as the backend for
