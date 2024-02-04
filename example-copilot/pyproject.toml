@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "copilot-for-terminal-pro"
+version = "0.1.0"
+description = ""
+authors = ["Michael Struwig <michael.struwig@openbb.finance>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.109.0"
+langchain = "^0.1.4"
+langchain-community = "^0.0.16"
+langchain-openai = "^0.0.5"
+uvicorn = "^0.27.0.post1"
+python-dotenv = "^1.0.1"
+
+
+[tool.poetry.group.development.dependencies]
+ruff = "^0.1.15"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
