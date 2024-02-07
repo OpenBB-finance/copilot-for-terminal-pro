@@ -24,17 +24,27 @@ Here's how to get your copilot up and running:
 ### Prerequisites
 
 Ensure you have poetry, a tool for dependency management and packaging in
-Python.
+Python, as well as your OpenAI API key.
 
 ### Installation and Running
+
+
+
 1. Clone this repository to your local machine.
-2. Install the necessary dependencies:
+2. Set the OpenAI API key as an environment variable in your .bashrc or .zshrc file:
+
+``` sh
+# in .zshrc or .bashrc
+EXPORT OPENAI_API_KEY=<your-api-key>
+```
+
+3. Install the necessary dependencies:
 
 ``` sh
 poetry install
 ```
 
-3.Start the API server:
+4.Start the API server:
 
 ``` sh
 uvicorn main:app --host 0.0.0.0 --port 7777 --reload
