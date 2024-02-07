@@ -51,16 +51,16 @@ uvicorn main:app --host 0.0.0.0 --port 7777 --reload
 This command runs the FastAPI application, making it accessible on your network.
 
 ### Testing the Example Copilot
-Once the API server is running, you can make sure it is working correctly by
-executing the `test.py`  file:
+Once the API server is running, you can make sure it works correctly by
+executing the `test.py` file:
 
 ``` sh
 python test.py
 ```
 
-This will execute a number of small example test cases that emulate how Terminal
-Pro interacts with copilots to verify that your Example Copilot is running
-correctly.
+This script executes a number of small example test cases that emulates how
+Terminal Pro interacts with copilots to verify that your Example Copilot is
+running correctly.
 
 ### Accessing the Documentation
 
