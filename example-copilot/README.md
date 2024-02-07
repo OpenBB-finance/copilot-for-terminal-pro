@@ -35,13 +35,13 @@ Python, as well as your OpenAI API key.
 
 ``` sh
 # in .zshrc or .bashrc
-EXPORT OPENAI_API_KEY=<your-api-key>
+export OPENAI_API_KEY=<your-api-key>
 ```
 
 3. Install the necessary dependencies:
 
 ``` sh
-poetry install
+poetry install --no-root
 ```
 
 4.Start the API server:
