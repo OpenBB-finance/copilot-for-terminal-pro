@@ -45,7 +45,7 @@ poetry install --no-root
 4.Start the API server:
 
 ``` sh
-uvicorn main:app --host 0.0.0.0 --port 7777 --reload
+uvicorn main:app --port 7777 --reload
 ```
 
 This command runs the FastAPI application, making it accessible on your network.
