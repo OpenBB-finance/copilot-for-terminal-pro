@@ -8,7 +8,7 @@ for working with Large Language Models (LLMs).
 
 You're not limited to our setup! If you have preferences for different APIs or
 LLM frameworks, feel free to adapt this implementation. The key is to adhere to
-the schema defined by the `/query` endpoint and the specifications in
+the schema defined by the `/v1/query` endpoint and the specifications in
 `copilot.json`.
 
 This repository is a starting point. It's designed for you to experiment,
