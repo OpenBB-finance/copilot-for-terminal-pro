@@ -1,5 +1,7 @@
 # Mistral Copilot
-This example provides a Mistral-powered copilot. 
+This example provides a Mistral-powered copilot that uses the `mistral-large`
+LLM. The context limit is 32k tokens, which means that some widgets, when
+selected or retrieved, might not fit into the context.
 
 ## Overview
 This implementation utilizes a FastAPI application to serve as the backend for
