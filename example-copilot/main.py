@@ -50,7 +50,7 @@ def get_copilot_description():
     )
 
 
-@app.post("/query")
+@app.post("/v1/query")
 def query(request: AgentQueryRequest) -> StreamingResponse:
     """Query the Copilot."""
     chat_messages = (
