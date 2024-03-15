@@ -53,7 +53,6 @@ def get_copilot_description():
 @app.post("/query")
 def query(request: AgentQueryRequest) -> StreamingResponse:
     """Query the Copilot."""
-    print(request)
     chat_messages = (
         [
             (message.role, sanitize_message(message.content))
@@ -64,7 +63,7 @@ def query(request: AgentQueryRequest) -> StreamingResponse:
     )
 
     template = ChatPromptTemplate.from_messages(
-        [("system", SYSTEM_PROMPT), *chat_messages, ("human", "User query: {query}")]
+        [("system", SYSTEM_PROMPT), *chat_messages]
     )
 
     output_parser = StrOutputParser()
@@ -73,7 +72,6 @@ def query(request: AgentQueryRequest) -> StreamingResponse:
     chain = template | model | output_parser
     stream = chain.stream(
         {
-            "query": request.query,
             "context": request.context,
         }
     )
