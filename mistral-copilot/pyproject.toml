@@ -11,7 +11,8 @@ fastapi = "^0.109.0"
 uvicorn = "^0.27.0.post1"
 python-dotenv = "^1.0.1"
 httpx = "^0.26.0"
-magentic = {extras = ["litellm"], version = "^0.17.0"}
+magentic = {git = "https://github.com/jackmpcollins/magentic.git", extras = ["litellm"]}
+litellm = "^1.34.39"
 
 
 [tool.poetry.group.development.dependencies]

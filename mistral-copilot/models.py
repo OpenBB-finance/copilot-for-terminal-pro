@@ -1,3 +1,4 @@
+import json
 from typing import Any
 from pydantic import BaseModel, Field, validator
 from enum import Enum
@@ -9,7 +10,7 @@ class RoleEnum(str, Enum):
     tool = "tool"
 
 
-class LlmFunctionCall(BaseModel):
+class LlmFunctionCallResult(BaseModel):
     role: RoleEnum = RoleEnum.tool
     function: str = Field(description="The name of the called function.")
     input_arguments: dict[str, Any] | None = Field(
@@ -18,13 +19,35 @@ class LlmFunctionCall(BaseModel):
     content: str = Field(description="The result of the function call.")
 
 
+class LlmFunctionCall(BaseModel):
+    function: str
+    input_arguments: dict[str, Any]
+
+
 class LlmMessage(BaseModel):
     role: RoleEnum = Field(
         description="The role of the entity that is creating the message"
     )
-    content: str = Field(
+    content: LlmFunctionCall | str = Field(
         description="The content of the message or the result of a function call."
     )
+
+    @validator("content", pre=True)
+    def parse_content(cls, v):
+        # We do this to make sure, if the client appends the function call to
+        # the messages that we're able to parse it correctly since the client
+        # will send the LlmFunctionCall encoded as a string, rather than JSON.
+        if isinstance(v, str):
+            try:
+                parsed_content = json.loads(v)
+                if isinstance(parsed_content, str):
+                    # Sometimes we need a second decode if the content is
+                    # escaped and string-encoded
+                    parsed_content = json.loads(parsed_content)
+                return LlmFunctionCall(**parsed_content)
+            except (json.JSONDecodeError, TypeError, ValueError) as err:
+                print("Failed to parse as JSON: %s", err)
+                return v
 
 
 class Widget(BaseModel):
@@ -44,7 +67,7 @@ class ContextualWidget(Widget):
 
 
 class AgentQueryRequest(BaseModel):
-    messages: list[LlmFunctionCall | LlmMessage] = Field(
+    messages: list[LlmFunctionCallResult | LlmMessage] = Field(
         description="A list of messages to submit to the copilot."
     )
     context: str | list[ContextualWidget] | None = Field(

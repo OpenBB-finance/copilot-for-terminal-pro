@@ -1,3 +1,4 @@
+import os
 import re
 import json
 from pathlib import Path
@@ -8,15 +9,17 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from magentic import (
     AssistantMessage,
     FunctionCall,
+    FunctionResultMessage,
+    OpenaiChatModel,
+    ParallelFunctionCall,
     SystemMessage,
     UserMessage,
     chatprompt,
     AsyncStreamedStr,
 )
-from magentic.chat_model.litellm_chat_model import LitellmChatModel
 
 from dotenv import load_dotenv
-from models import AgentQueryRequest, FunctionCallResponse, RoleEnum
+from models import AgentQueryRequest, FunctionCallResponse, LlmFunctionCall, RoleEnum
 from prompts import SYSTEM_PROMPT
 
 
@@ -59,13 +62,46 @@ def get_copilot_description():
 async def query(request: AgentQueryRequest) -> StreamingResponse:
     """Query the Copilot."""
 
+    # Define LLM functions
+    def _llm_get_widget_data(widget_uuid: str) -> FunctionCallResponse:
+        """Retrieve data from a widget, only if it's UUID is listed in the context.
+
+        # Usage
+        - This function can only be called if a valid widget UUID is present.
+        - This function can NOT be called if a valid widget UUID is not present.
+        """
+
+        return FunctionCallResponse(
+            function="get_widget_data", input_arguments={"widget_uuid": widget_uuid}
+        )
+
     # Prepare messages
     chat_messages = []
     for message in request.messages:
+        print(message)
         if message.role == RoleEnum.human:
             chat_messages.append(UserMessage(sanitize_message(message.content)))
         elif message.role == RoleEnum.ai:
-            chat_messages.append(AssistantMessage(sanitize_message(message.content)))
+            if isinstance(message.content, str):
+                chat_messages.append(
+                    AssistantMessage(sanitize_message(message.content))
+                )
+            elif isinstance(message.content, LlmFunctionCall):
+                function_call = FunctionCall(
+                    function=_llm_get_widget_data,
+                    **message.content.input_arguments,  # type: ignore
+                )
+                chat_messages.append(AssistantMessage(function_call))
+        elif message.role == RoleEnum.tool:
+            chat_messages.append(
+                FunctionResultMessage(
+                    content=sanitize_message(message.content),  # type: ignore
+                    function_call=function_call,  # type: ignore
+                )
+            )
+
+    for m in chat_messages:
+        print(m)
 
     # Prepare context
     context_str = ""
@@ -85,12 +121,17 @@ async def query(request: AgentQueryRequest) -> StreamingResponse:
     @chatprompt(
         SystemMessage(SYSTEM_PROMPT),
         *chat_messages,
-        model=LitellmChatModel(
-            "mistral/mistral-large-latest",
-            temperature=0.1,
+        functions=[_llm_get_widget_data],
+        model=OpenaiChatModel(
+            base_url="https://api.mistral.ai/v1/",
+            api_key=os.getenv("MISTRAL_API_KEY"),
+            model="mistral-large-latest",
+            temperature=0.2,
         ),
     )
-    async def copilot(widgets: str, context: str) -> FunctionCall | AsyncStreamedStr:
+    async def copilot(
+        widgets: str, context: str
+    ) -> ParallelFunctionCall | AsyncStreamedStr:
         ...
 
     # Query LLM
