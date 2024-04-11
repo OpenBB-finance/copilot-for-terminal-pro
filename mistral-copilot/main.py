@@ -3,7 +3,7 @@ import re
 import json
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from magentic import (
@@ -19,7 +19,13 @@ from magentic import (
 )
 
 from dotenv import load_dotenv
-from models import AgentQueryRequest, FunctionCallResponse, LlmFunctionCall, RoleEnum
+from models import (
+    AgentQueryRequest,
+    FunctionCallResponse,
+    LlmFunctionCall,
+    LlmFunctionCallResult,
+    RoleEnum,
+)
 from prompts import SYSTEM_PROMPT
 
 
@@ -80,7 +86,12 @@ async def query(request: AgentQueryRequest) -> StreamingResponse:
     for message in request.messages:
         print(message)
         if message.role == RoleEnum.human:
-            chat_messages.append(UserMessage(sanitize_message(message.content)))
+            if isinstance(message.content, str):
+                chat_messages.append(UserMessage(sanitize_message(message.content)))
+            else:
+                raise HTTPException(
+                    status_code=500, detail="Human messages must only be string."
+                )
         elif message.role == RoleEnum.ai:
             if isinstance(message.content, str):
                 chat_messages.append(
@@ -89,19 +100,22 @@ async def query(request: AgentQueryRequest) -> StreamingResponse:
             elif isinstance(message.content, LlmFunctionCall):
                 function_call = FunctionCall(
                     function=_llm_get_widget_data,
-                    **message.content.input_arguments,  # type: ignore
+                    **message.content.input_arguments,
                 )
                 chat_messages.append(AssistantMessage(function_call))
         elif message.role == RoleEnum.tool:
-            chat_messages.append(
-                FunctionResultMessage(
-                    content=sanitize_message(message.content),  # type: ignore
-                    function_call=function_call,  # type: ignore
+            if isinstance(message, LlmFunctionCallResult):
+                chat_messages.append(
+                    FunctionResultMessage(
+                        content=sanitize_message(message.content),
+                        function_call=function_call,  # type: ignore
+                    )
                 )
-            )
-
-    for m in chat_messages:
-        print(m)
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Tool message must have LlmFunctionCallResult.",
+                )
 
     # Prepare context
     context_str = ""
@@ -143,9 +157,10 @@ async def query(request: AgentQueryRequest) -> StreamingResponse:
             response()
         )  # Create the response by calling the function
         return StreamingResponse(
-            function_call_response.model_dump_json(), media_type="text/event-stream"
+            function_call_response.model_dump_json(),
+            media_type="text/event-stream",  # type: ignore
         )
-    return StreamingResponse(response, media_type="text/event-stream")
+    return StreamingResponse(response, media_type="text/event-stream")  # type: ignore
 
 
 def llm_retrieve_widget_data(widget_uuid: str) -> FunctionCallResponse:
