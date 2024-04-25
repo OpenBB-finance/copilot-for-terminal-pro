@@ -45,8 +45,7 @@ class LlmMessage(BaseModel):
                     # escaped and string-encoded
                     parsed_content = json.loads(parsed_content)
                 return LlmFunctionCall(**parsed_content)
-            except (json.JSONDecodeError, TypeError, ValueError) as err:
-                print("Failed to parse as JSON: %s", err)
+            except (json.JSONDecodeError, TypeError, ValueError):
                 return v
 
 

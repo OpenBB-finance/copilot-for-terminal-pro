@@ -1,8 +1,6 @@
-import os
 import re
 import json
 from pathlib import Path
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -10,13 +8,12 @@ from magentic import (
     AssistantMessage,
     FunctionCall,
     FunctionResultMessage,
-    OpenaiChatModel,
-    ParallelFunctionCall,
     SystemMessage,
     UserMessage,
     chatprompt,
     AsyncStreamedStr,
 )
+from magentic.chat_model.mistral_chat_model import MistralChatModel
 
 from dotenv import load_dotenv
 from models import (
@@ -84,7 +81,6 @@ async def query(request: AgentQueryRequest) -> StreamingResponse:
     # Prepare messages
     chat_messages = []
     for message in request.messages:
-        print(message)
         if message.role == RoleEnum.human:
             if isinstance(message.content, str):
                 chat_messages.append(UserMessage(sanitize_message(message.content)))
@@ -136,16 +132,12 @@ async def query(request: AgentQueryRequest) -> StreamingResponse:
         SystemMessage(SYSTEM_PROMPT),
         *chat_messages,
         functions=[_llm_get_widget_data],
-        model=OpenaiChatModel(
-            base_url="https://api.mistral.ai/v1/",
-            api_key=os.getenv("MISTRAL_API_KEY"),
+        model=MistralChatModel(
             model="mistral-large-latest",
             temperature=0.2,
         ),
     )
-    async def copilot(
-        widgets: str, context: str
-    ) -> ParallelFunctionCall | AsyncStreamedStr:
+    async def copilot(widgets: str, context: str) -> FunctionCall | AsyncStreamedStr:
         ...
 
     # Query LLM
