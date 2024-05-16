@@ -86,7 +86,7 @@ async def query(request: AgentQueryRequest) -> StreamingResponse:
                 chat_messages.append(UserMessage(sanitize_message(message.content)))
             else:
                 raise HTTPException(
-                    status_code=500, detail="Human messages must only be string."
+                    status_code=500, detail="Human messages can only be string."
                 )
         elif message.role == RoleEnum.ai:
             if isinstance(message.content, str):

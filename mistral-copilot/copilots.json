@@ -6,6 +6,9 @@
 		"link": "http://localhost:7777/v1/query",
 		"hasStreaming": true,
 		"hasFunctionCalling": true,
-		"hasDocuments": true
+		"hasDocuments": false,
+		"endpoints": {
+			"query": "http://localhost:7777/v1/query"
+		}
 	}
 }

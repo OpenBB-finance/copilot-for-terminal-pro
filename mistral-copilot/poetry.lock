@@ -122,6 +122,30 @@ files = [
 ]
 
 [[package]]
+name = "anthropic"
+version = "0.25.9"
+description = "The official Python library for the anthropic API"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "anthropic-0.25.9-py3-none-any.whl", hash = "sha256:d0b17d442160356a531593b237de55d3125cc6fa708f1268c214107e61c81c57"},
+    {file = "anthropic-0.25.9.tar.gz", hash = "sha256:a4ec810b1cfbf3340af99b6f5bf599a83d66986e0f572a5f3bc4ebcab284f629"},
+]
+
+[package.dependencies]
+anyio = ">=3.5.0,<5"
+distro = ">=1.7.0,<2"
+httpx = ">=0.23.0,<1"
+pydantic = ">=1.9.0,<3"
+sniffio = "*"
+tokenizers = ">=0.13.0"
+typing-extensions = ">=4.7,<5"
+
+[package.extras]
+bedrock = ["boto3 (>=1.28.57)", "botocore (>=1.31.57)"]
+vertex = ["google-auth (>=2,<3)"]
+
+[[package]]
 name = "anyio"
 version = "4.2.0"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
@@ -737,13 +761,13 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "litellm"
-version = "1.34.39"
+version = "1.37.12"
 description = "Library to easily interface with LLM API providers"
 optional = false
 python-versions = "!=2.7.*,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,!=3.7.*,>=3.8"
 files = [
-    {file = "litellm-1.34.39-py3-none-any.whl", hash = "sha256:347b7c5ac8a105eb0dccfd4429af1bef550d839cd4f76c36640ade93a267f92a"},
-    {file = "litellm-1.34.39.tar.gz", hash = "sha256:887ef607a0103bd06535f1fc52ac223cfe80a6223e7a2c165e902761db432e84"},
+    {file = "litellm-1.37.12-py3-none-any.whl", hash = "sha256:5b42b3c98e329a24f48112f488dd1c5e4c635fb5b1a098b50c2cab789cb08172"},
+    {file = "litellm-1.37.12.tar.gz", hash = "sha256:2188991e9aa903c9adcec9a265b58ad3b6d9acbe0b0f194b3321d69fa4102729"},
 ]
 
 [package.dependencies]
@@ -759,28 +783,30 @@ tokenizers = "*"
 
 [package.extras]
 extra-proxy = ["azure-identity (>=1.15.0,<2.0.0)", "azure-keyvault-secrets (>=4.8.0,<5.0.0)", "google-cloud-kms (>=2.21.3,<3.0.0)", "prisma (==0.11.0)", "resend (>=0.8.0,<0.9.0)"]
-proxy = ["PyJWT (>=2.8.0,<3.0.0)", "apscheduler (>=3.10.4,<4.0.0)", "backoff", "cryptography (>=42.0.5,<43.0.0)", "fastapi (>=0.109.1,<0.110.0)", "fastapi-sso (>=0.10.0,<0.11.0)", "gunicorn (>=21.2.0,<22.0.0)", "orjson (>=3.9.7,<4.0.0)", "python-multipart (>=0.0.9,<0.0.10)", "pyyaml (>=6.0.1,<7.0.0)", "rq", "uvicorn (>=0.22.0,<0.23.0)"]
+proxy = ["PyJWT (>=2.8.0,<3.0.0)", "apscheduler (>=3.10.4,<4.0.0)", "backoff", "cryptography (>=42.0.5,<43.0.0)", "fastapi (>=0.111.0,<0.112.0)", "fastapi-sso (>=0.10.0,<0.11.0)", "gunicorn (>=22.0.0,<23.0.0)", "orjson (>=3.9.7,<4.0.0)", "python-multipart (>=0.0.9,<0.0.10)", "pyyaml (>=6.0.1,<7.0.0)", "rq", "uvicorn (>=0.22.0,<0.23.0)"]
 
 [[package]]
 name = "magentic"
-version = "0.21.0"
+version = "0.24.0"
 description = "Seamlessly integrate LLMs as Python functions"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "magentic-0.21.0-py3-none-any.whl", hash = "sha256:7875033f7e09d0d377e5689b5bc108cc53b55fce7f8af613dd42c1f5ffae82bd"},
-    {file = "magentic-0.21.0.tar.gz", hash = "sha256:8beaea690b15a361ea4ceb71a7bec1ba909cd078c960ae1e45b7f8b7a9eba44b"},
+    {file = "magentic-0.24.0-py3-none-any.whl", hash = "sha256:0193d16f7eb322dfca1bbb6045e32587fa1bb252b7965fb6494c0f3d6eaf1ea8"},
+    {file = "magentic-0.24.0.tar.gz", hash = "sha256:f4e47410c096337564e7dc693ad0ea95b67f22a76bb930bfc8753169fd2c2e60"},
 ]
 
 [package.dependencies]
+anthropic = {version = ">=0.23.0", optional = true, markers = "extra == \"anthropic\""}
 filetype = "*"
-openai = ">=1.0"
+litellm = {version = ">=1.36.0", optional = true, markers = "extra == \"litellm\""}
+openai = ">=1.24.0"
 pydantic = ">=2.0.0"
 pydantic-settings = ">=2.0.0"
 
 [package.extras]
 anthropic = ["anthropic (>=0.23.0)"]
-litellm = ["litellm (>=1.33.7)"]
+litellm = ["litellm (>=1.36.0)"]
 
 [[package]]
 name = "markupsafe"
@@ -966,13 +992,13 @@ files = [
 
 [[package]]
 name = "openai"
-version = "1.23.6"
+version = "1.30.1"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.7.1"
 files = [
-    {file = "openai-1.23.6-py3-none-any.whl", hash = "sha256:f406c76ba279d16b9aca5a89cee0d968488e39f671f4dc6f0d690ac3c6f6fca1"},
-    {file = "openai-1.23.6.tar.gz", hash = "sha256:612de2d54cf580920a1156273f84aada6b3dca26d048f62eb5364a4314d7f449"},
+    {file = "openai-1.30.1-py3-none-any.whl", hash = "sha256:c9fb3c3545c118bbce8deb824397b9433a66d0d0ede6a96f7009c95b76de4a46"},
+    {file = "openai-1.30.1.tar.gz", hash = "sha256:4f85190e577cba0b066e1950b8eb9b11d25bc7ebcc43a86b326ce1bfa564ec74"},
 ]
 
 [package.dependencies]
@@ -1883,4 +1909,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "27720e10596b17b7450a3a6918439641052b1e18c85a2f358976470173d04a7e"
+content-hash = "3a9b7e4089361b2cbf1e5c6ab1de7ef88a9eed10dd9a8cd5f03ca5f6fed93d65"
