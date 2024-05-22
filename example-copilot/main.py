@@ -67,7 +67,7 @@ def query(request: AgentQueryRequest) -> StreamingResponse:
     )
 
     output_parser = StrOutputParser()
-    model = ChatOpenAI(model="gpt-4-turbo-preview", temperature=0.1)
+    model = ChatOpenAI(model="gpt-4-turbo", temperature=0.1)
 
     chain = template | model | output_parser
     stream = chain.stream(
