@@ -1,3 +1,6 @@
 __pycache__/
 /.env
 *.DS_Store
+*pycache*
+*.ruff_cache
+*.pytest_cache
