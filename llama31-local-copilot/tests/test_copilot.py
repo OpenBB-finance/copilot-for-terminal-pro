@@ -1,6 +1,6 @@
 from ast import literal_eval
 from fastapi.testclient import TestClient
-from example_copilot.main import app
+from llama_copilot.main import app
 import pytest
 
 test_client = TestClient(app)
