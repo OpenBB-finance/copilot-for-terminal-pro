@@ -2,7 +2,7 @@
 	"llama_copilot": {
 		"name": "LLaMA 3.1 Copilot",
 		"description": "AI-powered financial analyst fine-tuned by Example Co. to answer in the company-approved tone.",
-		"image": "https://github.com/OpenBB-finance/copilot-for-terminal-pro/assets/14093308/7da2a512-93b9-478d-90bc-b8c3dd0cabcf",
+		"image": "https://github.com/user-attachments/assets/a3f0892a-7257-4c26-927b-5c0d4bbb92a0",
 		"hasStreaming": true,
 		"hasDocuments": false,
 		"hasFunctionCalling": false,

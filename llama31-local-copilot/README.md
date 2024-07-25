@@ -43,7 +43,7 @@ poetry install --no-root
 3.Start the API server:
 
 ``` sh
-poetry run uvicorn main:app --port 7777 --reload
+poetry run uvicorn llama_copilot.main:app --port 7777 --reload
 ```
 
 This command runs the FastAPI application, making it accessible on your network.
