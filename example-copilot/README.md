@@ -4,8 +4,8 @@ using a custom System prompt.
 
 ## Overview
 This implementation utilizes a FastAPI application to serve as the backend for
-the copilot. The core functionality is powered by `langchain`, a robust framework
-for working with Large Language Models (LLMs).
+the copilot. The core functionality is powered by `magentic`, a robust, minimal
+framework for working with Large Language Models (LLMs).
 
 You're not limited to our setup! If you have preferences for different APIs or
 LLM frameworks, feel free to adapt this implementation. The key is to adhere to
@@ -45,22 +45,21 @@ poetry install --no-root
 4.Start the API server:
 
 ``` sh
-uvicorn main:app --port 7777 --reload
+poetry run uvicorn main:app --port 7777 --reload
 ```
 
 This command runs the FastAPI application, making it accessible on your network.
 
 ### Testing the Example Copilot
-Once the API server is running, you can make sure it works correctly by
-executing the `test.py` file:
+The example copilot has a small, basic test suite to ensure it's
+working correctly. As you develop your copilot, you are highly encouraged to
+expand these tests.
+
+You can run the tests with:
 
 ``` sh
-python test.py
+pytest tests
 ```
-
-This script executes a number of small example test cases that emulates how
-Terminal Pro interacts with copilots to verify that your Example Copilot is
-running correctly.
 
 ### Accessing the Documentation
 
