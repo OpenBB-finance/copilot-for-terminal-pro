@@ -4,3 +4,4 @@ __pycache__/
 *pycache*
 *.ruff_cache
 *.pytest_cache
+*.ipynb_checkpoints
