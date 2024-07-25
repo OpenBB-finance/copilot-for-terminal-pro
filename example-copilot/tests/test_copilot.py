@@ -71,3 +71,11 @@ def test_query_with_context():
     captured_stream = _capture_stream_response(response.text)
     assert response.status_code == 200
     assert "pizza" in captured_stream.lower()
+
+
+def test_query_no_messages():
+    test_payload = {
+        "messages": [],
+    }
+    response = test_client.post("/v1/query", json=test_payload)
+    "messages list cannot be empty" in response.text

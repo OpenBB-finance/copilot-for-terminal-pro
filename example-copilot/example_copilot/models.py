@@ -1,6 +1,6 @@
 from typing import Any
 from uuid import UUID
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 
 
@@ -41,7 +41,7 @@ class AgentQueryRequest(BaseModel):
         default=None, description="Set True to use uploaded docs when answering query."
     )
 
-    @validator("messages")
+    @field_validator("messages")
     def check_messages_not_empty(cls, value):
         if not value:
             raise ValueError("messages list cannot be empty.")
