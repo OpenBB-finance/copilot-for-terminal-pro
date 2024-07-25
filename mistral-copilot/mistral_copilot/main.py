@@ -152,12 +152,8 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
     async def copilot(widgets: str, context: str) -> FunctionCall | AsyncStreamedStr:
         ...
 
-    for message in chat_messages:
-        print(message)
-
     # Query LLM
     response = await copilot(widgets=widgets_str, context=context_str)
-    print(response)
 
     return EventSourceResponse(
         content=create_response_stream(response),
