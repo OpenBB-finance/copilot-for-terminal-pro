@@ -45,12 +45,12 @@ poetry install --no-root
 4.Start the API server:
 
 ``` sh
-poetry run uvicorn main:app --port 7777 --reload
+poetry run uvicorn example_copilot.main:app --port 7777 --reload
 ```
 
 This command runs the FastAPI application, making it accessible on your network.
 
-### Testing the Example Copilot
+### Testing the Copilot
 The example copilot has a small, basic test suite to ensure it's
 working correctly. As you develop your copilot, you are highly encouraged to
 expand these tests.

@@ -1,5 +1,5 @@
 # Mistral Copilot
-This example provides a Mistral-powered copilot that uses the `mistral-large`
+This example provides a Mistral-powered copilot that uses the `mistral-large-2`
 LLM. The context limit is 32k tokens, which means that some widgets, when
 selected or retrieved, might not fit into the context.
 
@@ -46,22 +46,21 @@ poetry install --no-root
 4.Start the API server:
 
 ``` sh
-uvicorn main:app --host 0.0.0.0 --port 7777 --reload
+poetry run uvicorn mistral_copilot.main:app --host 0.0.0.0 --port 7777 --reload
 ```
 
 This command runs the FastAPI application, making it accessible on your network.
 
-### Testing the Example Copilot
-Once the API server is running, you can make sure it works correctly by
-executing the `test.py` file:
+### Testing the Copilot
+The example copilot has a small, basic test suite to ensure it's
+working correctly. As you develop your copilot, you are highly encouraged to
+expand these tests.
+
+You can run the tests with:
 
 ``` sh
-python test.py
+pytest tests
 ```
-
-This script executes a number of small example test cases that emulates how
-Terminal Pro interacts with copilots to verify that your Example Copilot is
-running correctly.
 
 ### Accessing the Documentation
 
