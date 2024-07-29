@@ -139,11 +139,14 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
     if request.widgets:
         for widget in request.widgets:
             widgets_str += str(widget.model_dump_json()) + "\n\n"
+        functions = [_llm_get_widget_data]
+    else:
+        functions = None
 
     @chatprompt(
         SystemMessage(SYSTEM_PROMPT),
         *chat_messages,
-        functions=[_llm_get_widget_data],
+        functions=functions,
         model=MistralChatModel(
             model="mistral-large-2407",
             temperature=0.2,
