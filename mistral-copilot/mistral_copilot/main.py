@@ -1,9 +1,10 @@
 import re
 import json
 from pathlib import Path
+from typing import AsyncGenerator
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from magentic import (
     AssistantMessage,
     FunctionCall,
@@ -14,16 +15,17 @@ from magentic import (
     AsyncStreamedStr,
 )
 from magentic.chat_model.mistral_chat_model import MistralChatModel
+from sse_starlette.sse import EventSourceResponse
 
 from dotenv import load_dotenv
-from models import (
+from .models import (
     AgentQueryRequest,
     FunctionCallResponse,
     LlmFunctionCall,
     LlmFunctionCallResult,
     RoleEnum,
 )
-from prompts import SYSTEM_PROMPT
+from .prompts import SYSTEM_PROMPT
 
 
 load_dotenv(".env")
@@ -53,6 +55,16 @@ def sanitize_message(message: str) -> str:
     return cleaned_message
 
 
+async def create_response_stream(
+    response: AsyncStreamedStr | FunctionCall,
+) -> AsyncGenerator[dict, None]:
+    if isinstance(response, AsyncStreamedStr):
+        async for chunk in response:
+            yield {"event": "copilotMessageChunk", "data": {"delta": chunk}}
+    elif isinstance(response, FunctionCall):
+        yield {"event": "copilotFunctionCall", "data": response().model_dump()}
+
+
 @app.get("/copilots.json")
 def get_copilot_description():
     """Widgets configuration file for the OpenBB Terminal Pro"""
@@ -62,7 +74,7 @@ def get_copilot_description():
 
 
 @app.post("/v1/query")
-async def query(request: AgentQueryRequest) -> StreamingResponse:
+async def query(request: AgentQueryRequest) -> EventSourceResponse:
     """Query the Copilot."""
 
     # Define LLM functions
@@ -127,13 +139,16 @@ async def query(request: AgentQueryRequest) -> StreamingResponse:
     if request.widgets:
         for widget in request.widgets:
             widgets_str += str(widget.model_dump_json()) + "\n\n"
+        functions = [_llm_get_widget_data]
+    else:
+        functions = None
 
     @chatprompt(
         SystemMessage(SYSTEM_PROMPT),
         *chat_messages,
-        functions=[_llm_get_widget_data],
+        functions=functions,
         model=MistralChatModel(
-            model="mistral-large-latest",
+            model="mistral-large-2407",
             temperature=0.2,
         ),
     )
@@ -143,16 +158,10 @@ async def query(request: AgentQueryRequest) -> StreamingResponse:
     # Query LLM
     response = await copilot(widgets=widgets_str, context=context_str)
 
-    # Parse response
-    if isinstance(response, FunctionCall):
-        function_call_response = (
-            response()
-        )  # Create the response by calling the function
-        return StreamingResponse(
-            function_call_response.model_dump_json(),
-            media_type="text/event-stream",  # type: ignore
-        )
-    return StreamingResponse(response, media_type="text/event-stream")  # type: ignore
+    return EventSourceResponse(
+        content=create_response_stream(response),
+        media_type="text/event-stream",
+    )
 
 
 def llm_retrieve_widget_data(widget_uuid: str) -> FunctionCallResponse:
