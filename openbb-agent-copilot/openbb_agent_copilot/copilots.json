@@ -7,7 +7,7 @@
 		"hasDocuments": false,
 		"hasFunctionCalling": false,
 		"endpoints": {
-			"query": "http://localhost:7777/v1/query"
+			"query": "http://localhost:7778/v1/query"
 		}
 	}
 }

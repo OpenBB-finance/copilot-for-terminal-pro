@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import AsyncGenerator
 from openbb_agents.agent import openbb_agent
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -72,7 +73,7 @@ async def query(request: AgentQueryRequest):
             chat_messages.append(UserMessage(content=sanitize_message(message.content)))
 
     try:    
-        result = openbb_agent(str(chat_messages), verbose=False)
+        result = openbb_agent(str(chat_messages), verbose=False, openbb_pat=os.getenv("OPENBB_PAT"))
         
         return {"output": result}
     

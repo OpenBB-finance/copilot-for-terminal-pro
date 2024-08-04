@@ -24,7 +24,7 @@ Python, as well as your OpenAI API key.
 ``` sh
 # in .zshrc or .bashrc
 export OPENAI_API_KEY=<your-api-key>
-export OPENAI_API_KEY=<your-openbb-pat>
+export OPENBB_PAT=<your-openbb-pat>
 ```
 
 The later can be found here: https://my.openbb.co/app/platform/pat
@@ -38,7 +38,7 @@ poetry install --no-root
 4.Start the API server:
 
 ``` sh
-poetry run uvicorn example_copilot.main:app --port 7777 --reload
+poetry run uvicorn openbb_agent_copilot.main:app --port 7777 --reload
 ```
 
 This command runs the FastAPI application, making it accessible on your network.
