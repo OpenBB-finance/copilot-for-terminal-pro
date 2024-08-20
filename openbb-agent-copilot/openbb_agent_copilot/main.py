@@ -5,16 +5,16 @@ from typing import AsyncGenerator
 from openbb_agents.agent import openbb_agent
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from magentic import (
     UserMessage,
     AssistantMessage,
-    AsyncStreamedStr,
 )
 
 from dotenv import load_dotenv
+from sse_starlette import EventSourceResponse
 from .models import AgentQueryRequest
 
 load_dotenv(".env")
@@ -45,10 +45,9 @@ def sanitize_message(message: str) -> str:
 
 
 async def create_message_stream(
-    content: AsyncStreamedStr,
+    content: str,
 ) -> AsyncGenerator[dict, None]:
-    async for chunk in content:
-        yield {"event": "copilotMessageChunk", "data": {"delta": chunk}}
+    yield {"event": "copilotMessageChunk", "data": {"delta": content}}
 
 
 @app.get("/copilots.json")
@@ -60,10 +59,10 @@ def get_copilot_description():
 
 
 @app.post("/v1/query")
-async def query(request: AgentQueryRequest):
+async def query(request: AgentQueryRequest) -> EventSourceResponse:
     """Query the Copilot."""
 
-    chat_messages = []
+    chat_messages: list[AssistantMessage | UserMessage] = []
     for message in request.messages:
         if message.role == "ai":
             chat_messages.append(
@@ -72,11 +71,13 @@ async def query(request: AgentQueryRequest):
         elif message.role == "human":
             chat_messages.append(UserMessage(content=sanitize_message(message.content)))
 
-    try:    
-        result = openbb_agent(str(chat_messages), verbose=False, openbb_pat=os.getenv("OPENBB_PAT"))
-        
-        return {"output": result}
-    
-    except Exception as e:
-        error_message = e.json_body.get('error', {}).get('message', 'An unknown error occurred.')
-        raise HTTPException(status_code=400, content={"detail": str(e))
+    try:
+        result = openbb_agent(
+            str(chat_messages), verbose=True, openbb_pat=os.getenv("OPENBB_PAT")
+        )
+        return EventSourceResponse(
+            create_message_stream(result), media_type="text/event-stream"
+        )
+
+    except Exception as err:
+        raise HTTPException(status_code=400, detail=str(err))
