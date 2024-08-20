@@ -27,7 +27,7 @@ export OPENAI_API_KEY=<your-api-key>
 export OPENBB_PAT=<your-openbb-pat>
 ```
 
-The later can be found here: https://my.openbb.co/app/platform/pat
+The latter can be found here: https://my.openbb.co/app/platform/pat
 
 3. Install the necessary dependencies:
 
