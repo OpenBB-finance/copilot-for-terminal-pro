@@ -79,4 +79,4 @@ async def query(request: AgentQueryRequest):
     
     except Error as e:
         error_message = e.json_body.get('error', {}).get('message', 'An unknown error occurred.')
-        return JSONResponse(status_code=400, content={"error": error_message})
+        raise HTTPException(status_code=400, content={"detail": str(e))
