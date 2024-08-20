@@ -14,7 +14,7 @@ Here's how to get your copilot up and running:
 ### Prerequisites
 
 Ensure you have poetry, a tool for dependency management and packaging in
-Python, as well as your OpenAI API key.
+Python, installed as well as your OpenAI API key.
 
 ### Installation and Running
 
