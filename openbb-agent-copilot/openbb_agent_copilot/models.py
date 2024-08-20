@@ -37,9 +37,6 @@ class AgentQueryRequest(BaseModel):
         default=None,
         description="Additional context.",
     )
-    use_docs: bool = Field(
-        default=None, description="Set True to use uploaded docs when answering query."
-    )
 
     @field_validator("messages")
     def check_messages_not_empty(cls, value):
