@@ -60,7 +60,7 @@ async def create_response_stream(
 ) -> AsyncGenerator[dict, None]:
     if isinstance(response, AsyncStreamedStr):
         async for chunk in response:
-            yield {"event": "copilotMessageChunk", "data": {"delta": chunk}}
+            yield {"event": "copilotMessageChunk", "data": json.dumps({"delta": chunk})}
     elif isinstance(response, FunctionCall):
         yield {"event": "copilotFunctionCall", "data": response().model_dump()}
 
