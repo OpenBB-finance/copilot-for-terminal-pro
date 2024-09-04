@@ -1,0 +1,13 @@
+{
+	"example_copilot": {
+		"name": "FinDB Custom Copilot",
+		"description": "A financial copilot that has access to a local vectorDB containing financial data.",
+		"image": "https://github.com/OpenBB-finance/copilot-for-terminal-pro/assets/14093308/7da2a512-93b9-478d-90bc-b8c3dd0cabcf",
+		"hasStreaming": true,
+		"hasFunctionCalling": false,
+		"hasDocuments": false,
+		"endpoints": {
+			"query": "http://localhost:7777/v1/query"
+		}
+	}
+}
