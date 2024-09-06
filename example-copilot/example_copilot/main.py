@@ -51,7 +51,7 @@ async def create_message_stream(
     content: AsyncStreamedStr,
 ) -> AsyncGenerator[dict, None]:
     async for chunk in content:
-        yield {"event": "copilotMessageChunk", "data": {"delta": chunk}}
+        yield {"event": "copilotMessageChunk", "data": json.dumps({"delta": chunk})}
 
 
 @app.get("/copilots.json")
