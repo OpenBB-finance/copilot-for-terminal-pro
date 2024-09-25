@@ -65,8 +65,6 @@ async def create_response_stream(
             yield {"event": "copilotMessageChunk", "data": json.dumps({"delta": chunk})}
     elif isinstance(response, FunctionCall):
         function_call_response: FunctionCallResponse = response()
-        print("Received function call...")
-        print(function_call_response.model_dump_json())
         yield FunctionCallSSE(
             event="copilotFunctionCall",
             data=FunctionCallSSEData(
