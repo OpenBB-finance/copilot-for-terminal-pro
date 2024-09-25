@@ -1,6 +1,6 @@
 import json
-from typing import Any
-from pydantic import BaseModel, Field, validator
+from typing import Any, Literal
+from pydantic import BaseModel, Field, field_validator, validator
 from enum import Enum
 
 
@@ -32,7 +32,7 @@ class LlmMessage(BaseModel):
         description="The content of the message or the result of a function call."
     )
 
-    @validator("content", pre=True)
+    @field_validator("content", mode="before")
     def parse_content(cls, v):
         # We do this to make sure, if the client appends the function call to
         # the messages that we're able to parse it correctly since the client
@@ -91,3 +91,28 @@ class FunctionCallResponse(BaseModel):
     input_arguments: dict | None = Field(
         default=None, description="The input arguments to the function."
     )
+
+
+class BaseSSE(BaseModel):
+    event: Any
+    data: Any
+
+    def model_dump(self, *args, **kwargs) -> dict:
+        return {
+            "event": self.event,
+            "data": self.data.model_dump_json(exclude_none=True),
+        }
+
+
+class FunctionCallSSEData(BaseModel):
+    function: Literal["get_widget_data", "get_direct_retrieval_data"]
+    input_arguments: dict
+    copilot_function_call_arguments: dict | None = Field(
+        default=None,
+        description="The original arguments of the function call to copilot. This may be different to what is actually returned as the function call to the client.",  # noqa: E501
+    )
+
+
+class FunctionCallSSE(BaseSSE):
+    event: Literal["copilotFunctionCall"] = "copilotFunctionCall"
+    data: FunctionCallSSEData

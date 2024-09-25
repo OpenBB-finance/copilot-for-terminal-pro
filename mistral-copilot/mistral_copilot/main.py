@@ -21,6 +21,8 @@ from dotenv import load_dotenv
 from .models import (
     AgentQueryRequest,
     FunctionCallResponse,
+    FunctionCallSSE,
+    FunctionCallSSEData,
     LlmFunctionCall,
     LlmFunctionCallResult,
     RoleEnum,
@@ -62,7 +64,15 @@ async def create_response_stream(
         async for chunk in response:
             yield {"event": "copilotMessageChunk", "data": json.dumps({"delta": chunk})}
     elif isinstance(response, FunctionCall):
-        yield {"event": "copilotFunctionCall", "data": response().model_dump()}
+        function_call_response: FunctionCallResponse = response()
+        yield FunctionCallSSE(
+            event="copilotFunctionCall",
+            data=FunctionCallSSEData(
+                function=function_call_response.function,
+                input_arguments=function_call_response.input_arguments,
+                copilot_function_call_arguments=function_call_response.input_arguments,
+            ),
+        ).model_dump()
 
 
 @app.get("/copilots.json")
@@ -85,7 +95,8 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
         - This function can only be called if a valid widget UUID is present.
         - This function can NOT be called if a valid widget UUID is not present.
         """
-
+        print("Function call")
+        print(widget_uuid)
         return FunctionCallResponse(
             function="get_widget_data", input_arguments={"widget_uuid": widget_uuid}
         )
