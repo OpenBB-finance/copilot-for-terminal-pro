@@ -76,7 +76,8 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
         elif message.role == "human":
             chat_messages.append(UserMessage(content=sanitize_message(message.content)))
 
-    chat_messages.insert(1, UserMessage(content=sanitize_message("# Context\n" + str(request.context))))
+    if request.context:
+        chat_messages.insert(1, UserMessage(content=sanitize_message("# Context\n" + str(request.context))))
 
     @chatprompt(
         SystemMessage(SYSTEM_PROMPT),
