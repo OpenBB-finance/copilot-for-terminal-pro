@@ -1,6 +1,6 @@
 # Liquid LFM 40B MoE Copilot
 
-This example provides a basic copilot that utilizes the OpenRouter API for natural language processing and generation, and utilizes Liquid LFM 40B MoE.
+This example provides a basic copilot that utilizes the OpenRouter API for natural language processing and generation, and utilizes Liquid LFM 40B MoE (more information [here](https://openrouter.ai/liquid/lfm-40b:free/api)).
 
 ## Overview
 
