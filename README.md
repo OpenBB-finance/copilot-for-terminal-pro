@@ -12,33 +12,86 @@ To integrate a custom copilot, you'll need to create a custom copilot backend th
 
 When using a custom copilot, OpenBB Terminal will make POST requests to your custom copilot's `/v1/query` endpoint. These requests will contain information such as the current conversation's messages, any explicitly-added context, information about widgets on the currently-active dashboard, URLs to retrieve, etc.
 
-### API Request Schema Example
+### API Request Schema
 
 ```json
 {
   "messages": [
     {
-      "role": "human",
-      "content": "What is the current stock price of AAPL?"
+      "role": "tool",
+      "function": "string",
+      "input_arguments": {},
+      "data": {
+        "content": "string"
+      }
+    },
+    {
+      "role": "tool",
+      "function": "string",
+      "input_arguments": {},
+      "data": {
+        "content": "string"
+      },
+      "content": "string"
     }
   ],
+  "context": [
+    {
+      "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "string",
+      "description": "string",
+      "data": {
+        "content": "string"
+      },
+      "metadata": {}
+    }
+  ],
+  "allow_direct_retrieval": true,
   "widgets": [
     {
-      "uuid": "c276369e-e469-4689-b5fe-3f8c76f7c45a",
-      "name": "stock price quote widget",
-      "description": "Contains the current stock price of a ticker",
-      "metadata": {
-        "ticker": "AAPL"
-      }
+      "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "name": "string",
+      "description": "string",
+      "metadata": {}
     }
-  ]
+  ],
+  "custom_direct_retrieval_endpoints": [
+    {
+      "sourceName": "string",
+      "widgetId": "string",
+      "name": "string",
+      "description": "string",
+      "endpoint": "string",
+      "params": [
+        {
+          "paramName": "string",
+          "type": "string",
+          "description": "string",
+          "value": "string",
+          "options": [
+            {}
+          ],
+          "label": "string"
+        }
+      ]
+    }
+  ],
+  "urls": [
+    "string"
+  ],
+  "force_web_search": true,
+  "force_findb_search": true
 }
 ```
 
 - messages: The chat history, including both user and assistant messages as well as function calls and function call results.
 - context: Widgets that have been added as explicit context by the user. [Optional]
+- allow_direct_retrieval: A boolean value indicating whether the copilot can directly retrieve data.
 - widgets: A list of widgets currently in use by the user for function calling. [Optional]
+- custom_direct_retrieval_endpoints: A list of custom endpoints for direct data retrieval. [Optional]
 - urls: A list of URLs for web search functionality. [Optional]
+- force_web_search: A boolean value indicating whether the copilot should perform a web search. [Optional]
+- force_findb_search: A boolean value indicating whether the copilot should perform a FinDB search. [Optional]
 
 **Note:** OpenBB Terminal makes requests to this endpoint each time the user submits a query to your custom Copilot.
 
