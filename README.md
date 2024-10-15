@@ -1,151 +1,284 @@
 # Bring your own Copilot to Terminal
 
-Welcome to the example repository for integrating a custom copilot into the OpenBB Terminal!
+Welcome to the example repository for integrating custom copilots into the OpenBB Terminal.
 
-This guide provides everything you need to create and add your own custom copilots, enhancing the capabilities of Terminal Pro in a way that fits your unique requirements.
+This repository provides everything you need to build and add your own custom
+copilots to OpenBB Copilot.
+
+Here are a few common reasons why you might want to build your own copilot:
+- You have a unique data source that you don't want to add as a custom integration to OpenBB Terminal.
+- You want to use a specific LLM.
+- You want to use a local LLM.
+- You want a Copilot that is self-hosted on your infrastructure.
+- You are running on-premise in a locked-down environment that doesn't allow data to leave your VPC.
+
 
 ## Overview
 
-To integrate a custom copilot, you'll need to create a custom copilot backend that OpenBB Terminal connects to. OpenBB Terminal will send requests to your backend, which will respond with various Server-Sent Events ([SSEs](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)). This ensures real-time responses and seamless communication between Terminal Pro and your custom copilot.
+To integrate a custom copilot, you'll need to create a custom API backend that
+OpenBB Terminal connects to. OpenBB Terminal will make requests to your backend, allowing you to interact with your custom copilot from Terminal Pro.
 
-## How OpenBB Terminal submits requests to your Copilot
+Your custom API backend will respond with Server-Sent Events
+([SSEs](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)).
 
-When using a custom copilot, OpenBB Terminal will make POST requests to your custom copilot's `/v1/query` endpoint. These requests will contain information such as the current conversation's messages, any explicitly-added context, information about widgets on the currently-active dashboard, URLs to retrieve, etc.
+## Handling requests from OpenBB Terminal
+
+OpenBB Terminal will make POST requests to the `query` endpoint defined in your
+`copilots.json` file (more on this later). The payload of this request will
+contain data such as the current conversation's messages, any explicitly-added
+context, information about widgets on the currently-active dashboard, URLs to
+retrieve, and so on.
 
 ### API Request Schema
 
-```json
+The core of the query request schema you must implement is as follows:
+
+```python
+{
+  "messages": [  # <-- the chat messages between the user and the copilot (including function calls and results)
+    {
+      "role": "human",  # <-- each message has a role: "human", "ai", or "tool"
+      "content": "Hi there."  # <-- the content of the message
+    }
+  ],
+  "context": [  # <-- explicitly added context by the user (optional)
+    {
+      "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # <-- the UUID of the widget
+      "name": "<widget name>",  # <-- the name of the widget
+      "description": "<widget description>",  # <-- the description of the widget
+      "data": {
+        "content": "<data>"  # <-- the data of the widget
+      },
+      "metadata": {
+        "<metadata key>": "<metadata value>",  # <-- the metadata of the widget
+        ...
+      }
+    },
+    ...
+  ],
+  "widgets": [  # <-- the widgets currently visible on the active dashboard on Terminal Pro (optional)
+    {
+      "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # <-- the UUID of the widget
+      "name": "<widget name>",  # <-- the name of the widget
+      "description": "<widget description>",  # <-- the description of the widget
+      "metadata": {
+        "<metadata key>": "<metadata value>",  # <-- the metadata of the widget
+        ...
+      }
+    },
+    ...
+  ],
+}
+```
+
+We'll go over each of these fields in more detail below.
+
+#### `messages`
+This is the list of messages between the user and the copilot. This includes the
+user's messages, the copilot's messages, function calls, and function call
+results. Each message has a `role` and `content`.
+
+The simplest example is when no function calling is involved, which simply
+consists of an array of `human` and `ai` messages.
+
+OpenBB Terminal automatically appends all return `ai` messages (from your Copilot)
+to the `messages` array of any follow-up request.
+
+```python
+# Only one human message
 {
   "messages": [
     {
-      "role": "tool",
-      "function": "string",
-      "input_arguments": {},
+      "role": "human", 
+      "content": "Hi there."
+    }
+  ],
+  ...
+}
+```
+
+```python
+# Multiple messages
+{
+  "messages": [
+    {
+      "role": "human", 
+      "content": "Hi there."
+    },
+    {
+      "role": "ai", 
+      "content": "Hi there, I'm a copilot. How are you?"
+    },
+    {
+      "role": "human", 
+      "content": "I'm fine, thank you. What is the weather in Tokyo?"
+    }
+  ],
+  ...
+}
+```
+
+Function calls to Terminal Pro (such as when retrieving widget data), as well as the results of those function calls (containing the widget data), are also included in the `messages` array. For information on function calling, see the "Function Calling" section below.
+
+#### `context`
+
+This is an optional array of widget data that will be sent by OpenBB Terminal
+when widgets have been added as context explicitly by the user. This happens
+when the user clicks on the "Add as Context" button on a widget in OpenBB
+Terminal.
+
+<img src="https://github.com/user-attachments/assets/6c84dc5b-7615-4483-a956-67ac526d5800" alt="explicit_context" width="70%"/>
+
+The `context` field works as follows:
+
+```python
+{
+  ...
+  "context": [
+    {
+      "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",  # <-- each widget has a UUID
+      "name": "Analyst Estimates",
+      "description": "Contains analyst estimates for a ticker",
       "data": {
-        "content": "string"
+        "content": "<data>"  # <-- the data of the widget could either be a JSON string or plaintext (you must choose how to handle this in your copilot)
+      },
+      "metadata": {  # <-- additional metadata about the widget
+        "symbol": "AAPL",
+        "period": "quarter",
+        "source": "Financial Modelling Prep",
+        "lastUpdated": 1728998071322
       }
     },
     {
-      "role": "tool",
-      "function": "string",
-      "input_arguments": {},
+      "uuid": "8b2e5f79-3a1d-4c9e-b6f8-1e7d2a9c0b3d",  # <-- the context can have multiple widgets
+      "name": "Earnings Transcripts",  
+      "description": "Contains earnings transcripts for a ticker",
       "data": {
-        "content": "string"
+        "content": "<data>"  # <-- the data of the widget
       },
-      "content": "string"
-    }
+      "metadata": {
+        "symbol": "AAPL",
+        "period": "quarter",
+        "source": "Intrinio",
+        "lastUpdated": 1728998071322
+      }
+    },
+    ...
   ],
-  "context": [
-    {
-      "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "name": "string",
-      "description": "string",
-      "data": {
-        "content": "string"
-      },
-      "metadata": {}
-    }
-  ],
-  "allow_direct_retrieval": true,
+  ...
+}
+```
+
+#### `widgets`
+
+This is an array of widgets that are currently visible on the active dashboard
+on Terminal Pro.
+**This is only useful if you're planning on implementing function calling in
+*your custom copilot** (which is recommended, but not required), which
+allows it to request widget data from the user's currently-active dashboard on
+OpenBB Terminal.
+
+```python
+{
+  ...
   "widgets": [
     {
-      "uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "name": "string",
-      "description": "string",
-      "metadata": {}
-    }
-  ],
-  "custom_direct_retrieval_endpoints": [
+      "uuid": "c276369e-e469-4689-b5fe-3f8c76f7c45a",
+      "name": "Stock Price Quote Widget",
+      "description": "Contains the current stock price of a ticker",
+      "metadata": {
+        "ticker": "AAPL"
+      }
+    },
     {
-      "sourceName": "string",
-      "widgetId": "string",
-      "name": "string",
-      "description": "string",
-      "endpoint": "string",
-      "params": [
-        {
-          "paramName": "string",
-          "type": "string",
-          "description": "string",
-          "value": "string",
-          "options": [
-            {}
-          ],
-          "label": "string"
-        }
-      ]
-    }
+      "uuid": "9f8e7d6c-5b4a-3c2e-1d0f-9e8d7c6b5a4b",
+      "name": "Financial Ratios Widget",
+      "description": "Displays key financial ratios for a company",
+      "metadata": {
+        "ticker": "AAPL",
+        "period": "TTM"
+      }
+    },
+    ...
   ],
-  "urls": [
-    "string"
-  ],
-  "force_web_search": true,
-  "force_findb_search": true
+  ...
 }
 ```
 
-- messages: The chat history, including both user and assistant messages as well as function calls and function call results.
-- context: Widgets that have been added as explicit context by the user. [Optional]
-- allow_direct_retrieval: A boolean value indicating whether the copilot can directly retrieve data.
-- widgets: A list of widgets currently in use by the user for function calling. [Optional]
-- custom_direct_retrieval_endpoints: A list of custom endpoints for direct data retrieval. [Optional]
-- urls: A list of URLs for web search functionality. [Optional]
-- force_web_search: A boolean value indicating whether the copilot should perform a web search. [Optional]
-- force_findb_search: A boolean value indicating whether the copilot should perform a FinDB search. [Optional]
-
-**Note:** OpenBB Terminal makes requests to this endpoint each time the user submits a query to your custom Copilot.
-
-## Components of a custom copilot
-
-To integrate your custom copilot with Terminal Pro, you need to configure the copilots.json file. This file defines how your custom copilot connects with Terminal Pro, including which features it supports and where requests should be sent.
-
-- `example_copilot`: This is the unique identifier for your copilot.
-- `name`: The display name of your copilot. This name is used within the Terminal Pro UI to allow users to identify and select the copilot.
-- `description`: A short description of your copilot.
-- `image`: A URL to an image representing your copilot. This image will be displayed in the Terminal Pro interface.
-- `hasStreaming`: A boolean value indicating if the copilot supports streaming responses via SSEs. If set to `true`, Terminal Pro will expect the copilot to return responses in real-time chunks.
-- `hasFunctionCalling`: A boolean value indicating if the copilot supports function calling. If set to `true`, Terminal Pro will be able to make specific function calls such as retrieving widget data or accessing client-side resources.
-- `hasDocuments`: A boolean value indicating if the copilot supports processing documents, such as user-uploaded files. If set to `false`, document processing features will not be available for this copilot.
-- `endpoints`: A set of URLs that Terminal Pro will use to interact with your copilot. In this example:
-  - `query`: The URL for the main endpoint where Terminal Pro sends user queries (POST requests). This endpoint is where your copilot listens for incoming messages and responds accordingly.
-
-Here's an example copilots.json configuration:
-
-```json
-{
-  "example_copilot": {
-    "name": "Mistral Example Co. Copilot",
-    "description": "AI-powered financial copilot that uses Mistral Large as its LLM.",
-    "image": "https://github.com/OpenBB-finance/copilot-for-terminal-pro/assets/14093308/5c7518ad-3997-4fd7-9549-909eddd272c4",
-    "hasStreaming": true,
-    "hasFunctionCalling": true,
-    "hasDocuments": false,
-    "endpoints": {
-      "query": "http://localhost:7777/v1/query"
-    }
-  }
-}
-```
-
-## Copilot Responses
+## Responding to OpenBB Terminal
 
 Your custom copilot must respond to OpenBB Terminal's request using Server-Sent Events (SSEs).
 
-OpenBB Terminal accepts the following SSEs:
+OpenBB Terminal can process the following SSEs:
 
 - `copilotMessageChunk`: Used to return streamed copilot tokens (partial responses) back to OpenBB Terminal. These responses can be streamed as they are generated.
-- `copilotFunctionCall`: Used to request data (e.g., widget data) or perform a specific function. This instructs Terminal Pro to take further action on the client's side.
+- `copilotFunctionCall`: Used to request data (e.g., widget data) or perform a specific function. This instructs Terminal Pro to take further action on the client's side. This is only necessary if you're planning on implementing function calling in your custom copilot.
 
-Sending a `copilotMessageChunk` Event
+#### `copilotMessageChunk`
+The message chunk SSE has the following format:
 
-``` json
+```
+event: copilotMessageChunk
+data: {"delta":"H"}  # <-- the `data` field must be a JSON object.
+```
+The `delta` must be a string, but can be of any length. We suggest streaming
+back each chunk you receive from your LLM as soon as it's generated as a `delta`.
+
+For example, if you wanted to stream back the message "Hi", you would send the
+following SSEs:
+
+```
+event: copilotMessageChunk
+data: {"delta":"H"}
+
+event: copilotMessageChunk
+data: {"delta":"i"}
+
+event: copilotMessageChunk
+data: {"delta":"!"}
+```
+
+#### `copilotFunctionCall` (only required for function calling)
+The function call SSE has the following format:
+
+```
+event: copilotFunctionCall
+data: {"function":"get_widget_data","input_arguments":{"widget_uuid":"c276369e-e469-4689-b5fe-3f8c76f7c45a"}}
+```
+
+Again, the `data` field must be a JSON object. The `function` field is the name
+of the function to be called (currently only `get_widget_data` is supported),
+and the `input_arguments` field is a dictionary of arguments to be passed to the
+function. For the `get_widget_data` function, the only required argument is
+`widget_uuid`, which is the UUID of the widget to retrieve data for (from one of
+the UUIDs in the `widgets` array of the request).
+
+
+## Configuring your custom copilot for OpenBB Terminal (`copilots.json`)
+
+To integrate your custom copilot with Terminal Pro, you need to configure and a
+serve a `copilots.json` file. This file defines how your custom copilot connects
+with Terminal Pro, including which features it supports and where requests
+should be sent.
+
+Here is an example copilots.json configuration:
+
+```python
 {
-  "event": "copilotMessageChunk",
-  "data": {
-    "delta": "<token>"
+  "example_copilot": { # <-- the ID of your copilot
+    "name": "Mistral Example Co. Copilot", # <-- the display name of your copilot
+    "description": "AI-powered financial copilot that uses Mistral Large as its LLM.", # <-- a short description of your copilot
+    "image": "<url>", # <-- a URL to an image icon for your copilot
+    "hasStreaming": true, # <-- whether your copilot supports streaming responses via SSEs. This must always be true.
+    "hasFunctionCalling": true, # <-- whether your copilot supports function calling
+    "endpoints": {
+      "query": "<url>" # <-- the URL that Terminal Pro will send requests to. For example, "http://localhost:7777/v1/query"
+    }
   }
 }
 ```
+
+Your `copilots.json` file must be served at `<your-host>/copilots.json`, for example, `http://localhost:7777/copilots.json`.
 
 ## Function Calling
 
