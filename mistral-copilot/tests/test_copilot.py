@@ -94,7 +94,7 @@ def test_query_no_messages():
 
 def test_query_function_call():
     test_payload = {
-        "messages": [{"role": "human", "content": "what is the weather in london?"}],
+        "messages": [{"role": "human", "content": "what is the weather in London?"}],
         "widgets": [
             {
                 "uuid": "ff6368ec-a397-4baf-9f5a-fecd9fd797a3",

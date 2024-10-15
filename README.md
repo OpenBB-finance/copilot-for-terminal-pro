@@ -174,7 +174,7 @@ Example payload snippet:
   ...
   "widgets": [
     {
-      "uuid": "a032a4a1-2fdd-4a4d-ab6a-eff9124bd2b1",
+      "uuid": "c276369e-e469-4689-b5fe-3f8c76f7c45a",
       "name": "Price Performance",
       "description": "Interactive chart for asset price performance",
       "metadata": {
@@ -194,11 +194,115 @@ Currently, the only function call supported by the OpenBB Terminal is `get_widge
 
 Once a function call is required, the copilot should send a copilotFunctionCall event. Terminal Pro will execute the specified function and return the result. You must handle these function calls correctly to continue the conversation.
 
-For example, if your copilot requests widget data:
+Let's walk through the process:
 
-- Emit the copilotFunctionCall SSE.
-- Wait for Terminal Pro to provide the result.
-- Include the result in subsequent responses to complete the flow.
+The copilot receives a request from Terminal Pro that has the following query
+
+```json
+{
+  "allow_direct_retrieval": true,
+  "context": [],
+  "custom_direct_retrieval_endpoints": [
+    {
+      "description": "",
+      "category": "My Data",
+      "subCategory": ""
+    }
+  ],
+  "force_findb_search": false,
+  "force_web_search": false,
+  "messages": [
+    {
+      "role": "human",
+      "content": "What is the latest price of AAPL?"
+    }
+  ],
+  "urls": [],
+  "widgets": [
+    {
+      "uuid": "38181a68-9650-4940-84fb-a3f29c8869f3",
+      "name": "Historical Stock Price",
+      "description": "Historical Stock Price",
+      "metadata": {
+        "symbol": "AAPL",
+        "source": "Financial Modelling Prep",
+        "lastUpdated": 1728994470324
+      }
+    }
+  ]
+}
+```
+
+As there is a widget available for the requested data, the copilot should emit a `copilotFunctionCall` event to retrieve the data.
+
+```json
+{
+  "event": "copilotFunctionCall",
+  "data": {
+    "function": "get_widget_data",
+    "input_arguments": {
+      "widget_uuid": "38181a68-9650-4940-84fb-a3f29c8869f3"
+    }
+  }
+}
+```
+
+Then Terminal Pro will respond with the data from the widget:
+
+```json
+{
+  "custom_direct_retrieval_endpoints": [
+    {
+      "description": "",
+      "category": "My Data",
+      "subCategory": ""
+    }
+  ],
+  "messages": [
+    {
+      "role": "human",
+      "content": "What is the latest price of AAPL?"
+    },
+    {
+      "role": "ai",
+      "content": "{\"function\":\"get_widget_data\",\"input_arguments\":{\"widget_uuid\":\"38181a68-9650-4940-84fb-a3f29c8869f3\"},\"copilot_function_call_arguments\":{\"widget_uuid\":\"38181a68-9650-4940-84fb-a3f29c8869f3\"}}"
+    },
+    {
+      "role": "tool",
+      "function": "get_widget_data",
+      "content": "",
+      "copilot_function_call_arguments": {
+        "widget_uuid": "38181a68-9650-4940-84fb-a3f29c8869f3"
+      },
+      "input_arguments": {
+        "widget_uuid": "38181a68-9650-4940-84fb-a3f29c8869f3"
+      },
+      "data_source": "backend",
+      "data": [
+        {
+          "date": "2024-10-14T00:00:00-04:00",
+          "open": "..."
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "uuid": "38181a68-9650-4940-84fb-a3f29c8869f3",
+      "name": "Historical Stock Price",
+      "description": "Historical Stock Price",
+      "metadata": {
+        "symbol": "AAPL",
+        "source": "Financial Modelling Prep",
+        "lastUpdated": 1728994470324
+      }
+    }
+  ]
+}
+```
+
+Now, we have the data from the widget, and the copilot can use this data to respond to the user's query.
+This result will be included in the subsequent responses to complete the flow.
 
 **Note:** The copilot must also include the function call response in any further requests to maintain context.
 
