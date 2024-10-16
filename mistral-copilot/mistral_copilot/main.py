@@ -163,8 +163,9 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
             temperature=0.2,
         ),
     )
-    async def copilot(widgets: str, context: str) -> FunctionCall | AsyncStreamedStr:
-        ...
+    async def copilot(
+        widgets: str, context: str
+    ) -> FunctionCall | AsyncStreamedStr: ...
 
     # Query LLM
     response = await copilot(widgets=widgets_str, context=context_str)

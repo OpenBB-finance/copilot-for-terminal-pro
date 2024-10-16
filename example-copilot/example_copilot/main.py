@@ -76,8 +76,7 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
             chat_messages.append(UserMessage(content=sanitize_message(message.content)))
 
     @chatprompt(SystemMessage(SYSTEM_PROMPT), *chat_messages)
-    async def _llm(context: str) -> AsyncStreamedStr:
-        ...
+    async def _llm(context: str) -> AsyncStreamedStr: ...
 
     result = await _llm(context=request.context)
     return EventSourceResponse(

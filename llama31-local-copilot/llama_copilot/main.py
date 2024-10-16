@@ -81,8 +81,7 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
         *chat_messages,
         model=LitellmChatModel(model="ollama_chat/llama3.1:8b-instruct-q6_K"),
     )
-    async def _llm(context: str) -> AsyncStreamedStr:
-        ...
+    async def _llm(context: str) -> AsyncStreamedStr: ...
 
     result = await _llm(context=request.context)
     return EventSourceResponse(
