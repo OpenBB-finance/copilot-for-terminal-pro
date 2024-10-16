@@ -3,7 +3,7 @@ name: Test Copilots
 on: [pull_request]
 
 jobs:
-  example-copilot-test:
+  example-copilot:
     runs-on: ubuntu-latest
     strategy:
       matrix:
