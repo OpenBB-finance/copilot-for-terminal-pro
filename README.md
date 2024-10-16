@@ -1,4 +1,4 @@
-# Bring your own Copilot to Terminal
+# Bring your own Copilot to OpenBB Terminal
 
 Welcome to the example repository for integrating custom copilots into the OpenBB Terminal.
 
@@ -15,17 +15,19 @@ Here are a few common reasons why you might want to build your own copilot:
 
 ## Overview
 
-To integrate a custom copilot, you'll need to create a custom API backend that
-OpenBB Terminal connects to. OpenBB Terminal will make requests to your backend, allowing you to interact with your custom copilot from Terminal Pro.
+To integrate a custom Copilot that you can interact with from the OpenBB
+Terminal, you'll need to create a backend API that the Terminal can make
+requests to.  
 
-Your custom API backend will respond with Server-Sent Events
+
+Your custom copilot API will respond with Server-Sent Events
 ([SSEs](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)).
 
 **Note: If you're looking to get started
 quickly, we suggest running one of the example copilots included as part of
 this repository, and adding it as a custom copilot to OpenBB Terminal (each example copilot includes instructions on how to run them). Cloning and modifying an example copilot is a great way to build a custom copilot.**
 
-## The copilot protocol is stateless
+## The Copilot protocol is stateless
 
 The most important concept to understand is that the copilot protocol is
 _stateless_.  This means that every request from OpenBB Terminal to your copilot
@@ -247,7 +249,7 @@ data: {"delta":"H"}  # <-- the `data` field must be a JSON object.
 The `delta` must be a string, but can be of any length. We suggest streaming
 back each chunk you receive from your LLM as soon as it's generated as a `delta`.
 
-For example, if you wanted to stream back the message "Hi", you would send the
+For example, if you wanted to stream back the message "Hi!", you would send the
 following SSEs:
 
 ```
@@ -313,7 +315,6 @@ include the original function call, as well as the function call result in the
     {
       "role": "tool",
       "function": "get_widget_data",
-      "content": "",
       "data": {
         "content": "<data>"
       } 
@@ -438,10 +439,10 @@ data: {"delta":" $150.75."}
 
 ## Configuring your custom copilot for OpenBB Terminal (`copilots.json`)
 
-To integrate your custom copilot with Terminal Pro, you need to configure and a
+To integrate your custom copilot with OpenBB Terminal, you need to configure and
 serve a `copilots.json` file. This file defines how your custom copilot connects
-with Terminal Pro, including which features it supports and where requests
-should be sent.
+with the frontend, including which features are supported by your custom
+copilot, and where requests  should be sent.  
 
 Here is an example copilots.json configuration:
 
