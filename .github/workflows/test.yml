@@ -1,4 +1,4 @@
-name: Test Example Copilot
+name: Test Copilots
 
 on: [pull_request]
 
@@ -26,7 +26,7 @@ jobs:
         run: |
           cd example-copilot
           python -m pip install --upgrade pip
-          poetry install --without=dev,scripts --with=testing
+          poetry install
       - name: Run Pytest
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
