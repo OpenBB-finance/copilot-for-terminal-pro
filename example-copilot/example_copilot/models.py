@@ -16,13 +16,17 @@ class LlmMessage(BaseModel):
     content: str = Field(description="The content of the message")
 
 
+class DataContent(BaseModel):
+    content: Any = Field(description="The data content of the widget")
+
+
 class BaseContext(BaseModel):
     uuid: UUID = Field(description="The UUID of the widget.")
     name: str = Field(description="The name of the widget.")
     description: str = Field(
         description="A description of the data contained in the widget"
     )
-    content: Any = Field(description="The data content of the widget")
+    data: DataContent = Field(description="The data content of the widget")
     metadata: dict[str, Any] | None = Field(
         default=None,
         description="Additional widget metadata (eg. the selected ticker, etc)",

@@ -1,7 +1,9 @@
 from ast import literal_eval
+import json
 from fastapi.testclient import TestClient
 from example_copilot.main import app
 import pytest
+from pathlib import Path
 
 test_client = TestClient(app)
 
@@ -32,7 +34,11 @@ def _capture_stream_response(event_stream: str):
 
 
 def test_query():
-    test_payload = {"messages": [{"role": "human", "content": "what is 1 + 1?"}]}
+    test_payload_path = (
+        Path(__file__).parent.parent.parent / "test_payloads" / "single_message.json"
+    )
+    test_payload = json.load(open(test_payload_path))
+
     response = test_client.post("/v1/query", json=test_payload)
     captured_stream = _capture_stream_response(response.text)
     assert response.status_code == 200
@@ -40,13 +46,11 @@ def test_query():
 
 
 def test_query_conversation():
-    test_payload = {
-        "messages": [
-            {"role": "human", "content": "what is 1 + 1?"},
-            {"role": "ai", "content": "2"},
-            {"role": "human", "content": "what is 2 + 2?"},
-        ]
-    }
+    test_payload_path = (
+        Path(__file__).parent.parent.parent / "test_payloads" / "multiple_messages.json"
+    )
+    test_payload = json.load(open(test_payload_path))
+
     response = test_client.post("/v1/query", json=test_payload)
     captured_stream = _capture_stream_response(response.text)
     assert response.status_code == 200
@@ -63,7 +67,9 @@ def test_query_with_context():
                 "uuid": "ff6368ec-a397-4baf-9f5a-fecd9fd797a3",
                 "name": "favourite_food",
                 "description": "The user's favourite food",
-                "content": "pizza",
+                "data": {
+                    "content": "pizza",
+                },
             }
         ],
     }
