@@ -35,16 +35,10 @@ will include all previous messages (such as AI completions, human messages,
 function calls, and function call results) in the request payload.
 
 This means it is not necessary for your custom copilot to maintain any state
-between requests. It will simply use the request payload to generate a response.
+between requests. It should simply use the request payload to generate a response.
 
-OpenBB Terminal is responsible for maintaining the conversation state, and will
-append the responses to the `messages` array in the request payload. You can
-choose how much of the conversation you want your custom copilot to generate a
-response to, but typically you'd respond to the entire conversation history.
-
-We recommend that you do not maintain any conversational state in your copilot,
-and simply respond to the entire conversation history.
-
+OpenBB Terminal is solely responsible for maintaining the conversation state, and will
+append the responses to the `messages` array in the request payload. 
 
 ## Handling requests from OpenBB Terminal
 
