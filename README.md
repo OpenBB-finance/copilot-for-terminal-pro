@@ -358,18 +358,16 @@ Your custom copilot receives the following request from OpenBB Terminal:
 You then parse the response, format the messages to your LLM (including information on which widgets are available).  Let's assume
 that your copilot determines that the user's query can be answered using the widget available, and generates a function call to retrieve the data.
 
-Your copilot then responds with the following SSE:
+Your copilot then responds with the following SSE and close the connection:
 
 ```
 event: copilotFunctionCall
 data: {"function":"get_widget_data","input_arguments":{"widget_uuid":"38181a68-9650-4940-84fb-a3f29c8869f3"}}
 ```
 
-and close the connection.
-
 OpenBB Terminal will then execute the specified function, and make a new query request to your custom copilot:
 
-```json
+```python
 {
   "messages": [
     {
@@ -405,6 +403,7 @@ OpenBB Terminal will then execute the specified function, and make a new query r
 
 You then parse the response, process the data, and format the messages to your LLM. Let's assume that the LLM then generates a string of tokens to answer the user's query. These are then streamed back to the user using the `copilotMessageChunk` SSE:
 
+```
 event: copilotMessageChunk
 data: {"delta":"The"}
 
@@ -434,6 +433,7 @@ data: {"delta":" is"}
 
 event: copilotMessageChunk
 data: {"delta":" $150.75."}
+```
 
 
 ## Configuring your custom copilot for OpenBB Terminal (`copilots.json`)
