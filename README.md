@@ -21,6 +21,29 @@ OpenBB Terminal connects to. OpenBB Terminal will make requests to your backend,
 Your custom API backend will respond with Server-Sent Events
 ([SSEs](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)).
 
+**Note: If you're looking to get started
+quickly, we suggest running one of the example copilots included as part of
+this repository, and adding it as a custom copilot to OpenBB Terminal (each example copilot includes instructions on how to run them). Cloning and modifying an example copilot is a great way to build a custom copilot.**
+
+## The copilot protocol is stateless
+
+The most important concept to understand is that the copilot protocol is
+_stateless_.  This means that every request from OpenBB Terminal to your copilot
+will include all previous messages (such as AI completions, human messages,
+function calls, and function call results) in the request payload.
+
+This means it is not necessary for your custom copilot to maintain any state
+between requests. It can simply use the request payload to generate a response.
+
+OpenBB Terminal is responsible for maintaining the conversation state, and will
+append the responses to the `messages` array in the request payload. You can
+choose how much of the conversation you want your custom copilot to generate a
+response to, but typically you'd respond to the entire conversation history.
+
+We recommend that you do not maintain any conversational state in your copilot,
+and simply respond to the entire conversation history.
+
+
 ## Handling requests from OpenBB Terminal
 
 OpenBB Terminal will make POST requests to the `query` endpoint defined in your
@@ -205,7 +228,7 @@ OpenBB Terminal.
 }
 ```
 
-## Responding to OpenBB Terminal
+## Response Schema
 
 Your custom copilot must respond to OpenBB Terminal's request using Server-Sent Events (SSEs).
 
@@ -254,6 +277,165 @@ function. For the `get_widget_data` function, the only required argument is
 the UUIDs in the `widgets` array of the request).
 
 
+
+## Function Calling
+
+By adding function calling to your copilot, it will be able to request data that
+is visible on a user's currently-active dashboard in OpenBB Terminal.
+
+A list of all widgets currently visible on a user's dashboard is sent to your
+copilot in the `widgets` array of the request payload.
+
+To retrieve the data from a widget, your copilot should respond with a
+`copilotFunctionCall` event, specifying the widget UUID:
+
+```
+event: copilotFunctionCall
+data: {"function":"get_widget_data","input_arguments":{"widget_uuid":"c276369e-e469-4689-b5fe-3f8c76f7c45a"}}
+```
+
+After emitting a `copilotFunctionCall` event, you must close the connection and wait for a new query request from OpenBB Terminal.
+
+When a `copilotFunctionCall` event is received, OpenBB Terminal will retrieve
+the data, and initiate a **new** query request. This new query request will
+include the original function call, as well as the function call result in the
+`messages` array.
+
+```python
+{
+  ...
+  "messages": [
+    ...
+    {
+      "role": "ai",
+      "content": "{\"function\":\"get_widget_data\",\"input_arguments\":{\"widget_uuid\":\"c276369e-e469-4689-b5fe-3f8c76f7c45a\"}}"
+    },
+    {
+      "role": "tool",
+      "function": "get_widget_data",
+      "content": "",
+      "data": {
+        "content": "<data>"
+      } 
+    }
+  ]
+}
+```
+
+Notice that:
+- Both the function call and the function call result are included in the `messages` array. 
+- The `content` field of the function call `ai` message is a verbatim string-encoded JSON object of the `data` field of the `copilotFunctionCall` event (this is a very useful mechanism for smuggling additional metadata related to the function call, if your copilot needs it).
+
+Currently, the only function call supported by the OpenBB Terminal is `get_widget_data`, which retrieves data from a specific widget.
+
+### Function call example
+
+Your custom copilot receives the following request from OpenBB Terminal:
+
+```json
+{
+  "messages": [
+    {
+      "role": "human",
+      "content": "What is the current stock price of AAPL?"
+    }
+  ],
+  "widgets": [
+    {
+      "uuid": "38181a68-9650-4940-84fb-a3f29c8869f3",
+      "name": "Historical Stock Price",
+      "description": "Historical Stock Price",
+      "metadata": {
+        "symbol": "AAPL",
+        "source": "Financial Modelling Prep",
+        "lastUpdated": 1728994470324
+      }
+    }
+  ]
+}
+```
+
+You then parse the response, format the messages to your LLM (including information on which widgets are available).  Let's assume
+that your copilot determines that the user's query can be answered using the widget available, and generates a function call to retrieve the data.
+
+Your copilot then responds with the following SSE:
+
+```
+event: copilotFunctionCall
+data: {"function":"get_widget_data","input_arguments":{"widget_uuid":"38181a68-9650-4940-84fb-a3f29c8869f3"}}
+```
+
+and close the connection.
+
+OpenBB Terminal will then execute the specified function, and make a new query request to your custom copilot:
+
+```json
+{
+  "messages": [
+    {
+      "role": "human",
+      "content": "What is the current stock price of AAPL?"
+    },
+    {
+      "role": "ai",
+      "content": "{\"function\":\"get_widget_data\",\"input_arguments\":{\"widget_uuid\":\"38181a68-9650-4940-84fb-a3f29c8869f3\"}}"  
+    },
+    {
+      "role": "tool",
+      "function": "get_widget_data",
+      "data": {
+        "content": "[{\"date\":\"2024-10-15T00:00:00-04:00\",\"open\":233.61,\"high\":237.49,\"low\":232.37,\"close\":233.85,\"volume\":61901688,\"vwap\":234.33,\"adj_close\":233.85,\"change\":0.24,\"change_percent\":0.0010274},{\"date\":\"2024-10-14T00:00:00-04:00\",\"open\":228.7,\"high\":231.73,\"low\":228.6,\"close\":231.3,\"volume\":39882100,\"vwap\":230.0825,\"adj_close\":231.3,\"change\":2.6,\"change_percent\":0.0114},{\"date\":\"2024-10-11T00:00:00-04:00\",\"open\":229.3,\"high\":233.2,\"low\":228.9,\"close\":231.0,\"volume\":32581944,\"vwap\":231.0333,\"adj_close\":231.0,\"change\":1.7,\"change_percent\":0.0074}, ... ]"
+      }
+    } 
+  ],
+  "widgets": [
+    {
+      "uuid": "38181a68-9650-4940-84fb-a3f29c8869f3",
+      "name": "Historical Stock Price",
+      "description": "Historical Stock Price",
+      "metadata": {
+        "symbol": "AAPL",
+        "source": "Financial Modelling Prep",
+        "lastUpdated": 1728994470324
+      }
+    }
+}
+```
+
+
+You then parse the response, process the data, and format the messages to your LLM. Let's assume that the LLM then generates a string of tokens to answer the user's query. These are then streamed back to the user using the `copilotMessageChunk` SSE:
+
+event: copilotMessageChunk
+data: {"delta":"The"}
+
+event: copilotMessageChunk
+data: {"delta":" current"}
+
+event: copilotMessageChunk
+data: {"delta":" stock"}
+
+event: copilotMessageChunk
+data: {"delta":" price"}
+
+event: copilotMessageChunk
+data: {"delta":" of"}
+
+event: copilotMessageChunk
+data: {"delta":" Apple"}
+
+event: copilotMessageChunk
+data: {"delta":" Inc."}
+
+event: copilotMessageChunk
+data: {"delta":" (AAPL)"}
+
+event: copilotMessageChunk
+data: {"delta":" is"}
+
+event: copilotMessageChunk
+data: {"delta":" $150.75."}
+
+
 ## Configuring your custom copilot for OpenBB Terminal (`copilots.json`)
 
 To integrate your custom copilot with Terminal Pro, you need to configure and a
@@ -279,279 +461,3 @@ Here is an example copilots.json configuration:
 ```
 
 Your `copilots.json` file must be served at `<your-host>/copilots.json`, for example, `http://localhost:7777/copilots.json`.
-
-## Function Calling
-
-If your copilot needs to request data (e.g., widget data) or perform a specific function, you will emit a copilotFunctionCall event. This instructs Terminal Pro to take further action on the client's side.
-
-Function Call Example `copilotFunctionCall`:
-
-```json
-{
-  "event": "copilotFunctionCall",
-  "data": {
-    "function": "get_widget_data",
-    "input_arguments": {
-      "widget_uuid": "c276369e-e469-4689-b5fe-3f8c76f7c45a"
-    }
-  }
-}
-```
-
-The widget UUID is obtained from the OpenBB Terminal's request payload. It sends all widgets that are currently active on the dashboard to the copilot.
-
-Example payload snippet:
-
-```json
-{
-  ...
-  "widgets": [
-    {
-      "uuid": "c276369e-e469-4689-b5fe-3f8c76f7c45a",
-      "name": "Price Performance",
-      "description": "Interactive chart for asset price performance",
-      "metadata": {
-        "symbol": "TSLA",
-        "source": "Financial Modelling Prep",
-        "lastUpdated": 1728925996386
-      }
-    }
-  ]
-  ...
-}
-```
-
-Currently, the only function call supported by the OpenBB Terminal is `get_widget_data`, which retrieves data from a specific widget.
-
-### Handling Function Calls in Your Copilot
-
-Once a function call is required, the copilot should send a copilotFunctionCall event. Terminal Pro will execute the specified function and return the result. You must handle these function calls correctly to continue the conversation.
-
-Let's walk through the process:
-
-The copilot receives a request from Terminal Pro that has the following query
-
-```json
-{
-  "allow_direct_retrieval": true,
-  "context": [],
-  "custom_direct_retrieval_endpoints": [
-    {
-      "description": "",
-      "category": "My Data",
-      "subCategory": ""
-    }
-  ],
-  "force_findb_search": false,
-  "force_web_search": false,
-  "messages": [
-    {
-      "role": "human",
-      "content": "What is the latest price of AAPL?"
-    }
-  ],
-  "urls": [],
-  "widgets": [
-    {
-      "uuid": "38181a68-9650-4940-84fb-a3f29c8869f3",
-      "name": "Historical Stock Price",
-      "description": "Historical Stock Price",
-      "metadata": {
-        "symbol": "AAPL",
-        "source": "Financial Modelling Prep",
-        "lastUpdated": 1728994470324
-      }
-    }
-  ]
-}
-```
-
-As there is a widget available for the requested data, the copilot should emit a `copilotFunctionCall` event to retrieve the data.
-
-```json
-{
-  "event": "copilotFunctionCall",
-  "data": {
-    "function": "get_widget_data",
-    "input_arguments": {
-      "widget_uuid": "38181a68-9650-4940-84fb-a3f29c8869f3"
-    }
-  }
-}
-```
-
-Then Terminal Pro will respond with the data from the widget:
-
-```json
-{
-  "custom_direct_retrieval_endpoints": [
-    {
-      "description": "",
-      "category": "My Data",
-      "subCategory": ""
-    }
-  ],
-  "messages": [
-    {
-      "role": "human",
-      "content": "What is the latest price of AAPL?"
-    },
-    {
-      "role": "ai",
-      "content": "{\"function\":\"get_widget_data\",\"input_arguments\":{\"widget_uuid\":\"38181a68-9650-4940-84fb-a3f29c8869f3\"},\"copilot_function_call_arguments\":{\"widget_uuid\":\"38181a68-9650-4940-84fb-a3f29c8869f3\"}}"
-    },
-    {
-      "role": "tool",
-      "function": "get_widget_data",
-      "content": "",
-      "copilot_function_call_arguments": {
-        "widget_uuid": "38181a68-9650-4940-84fb-a3f29c8869f3"
-      },
-      "input_arguments": {
-        "widget_uuid": "38181a68-9650-4940-84fb-a3f29c8869f3"
-      },
-      "data_source": "backend",
-      "data": [
-        {
-          "date": "2024-10-14T00:00:00-04:00",
-          "open": "..."
-        }
-      ]
-    }
-  ],
-  "widgets": [
-    {
-      "uuid": "38181a68-9650-4940-84fb-a3f29c8869f3",
-      "name": "Historical Stock Price",
-      "description": "Historical Stock Price",
-      "metadata": {
-        "symbol": "AAPL",
-        "source": "Financial Modelling Prep",
-        "lastUpdated": 1728994470324
-      }
-    }
-  ]
-}
-```
-
-Now, we have the data from the widget, and the copilot can use this data to respond to the user's query.
-This result will be included in the subsequent responses to complete the flow.
-
-**Note:** The copilot must also include the function call response in any further requests to maintain context.
-
-## Example requests and responses
-
-### Simple Query
-
-Chatting with the copilot is straightforward. Here's an example of a simple query:
-
-```json
-{
-  "messages": [
-    {
-      "role": "human",
-      "content": "Hi there. Who are you?"
-    }
-  ],
-}
-```
-
-### Including specific content
-
-If a user wants the Copilot to use data from a specific widget, the user can explicitly add it as context inside the UI. OpenBB Terminal will then include this context in the query to the copilot.
-
-<img src="https://openbb-assets.s3.amazonaws.com/docs/custom_copilot/custom_copilot_chat_example.gif" alt="query custom copilot" />
-
-Request:
-
-```json
-{
-  "allow_direct_retrieval": true,
-  "context": [
-    {
-      "uuid": "b61f8b98-47ad-436f-99c3-5b74d7a4e364",
-      "name": "Historical Stock Price",
-      "description": "Contains historical stock prices for a specific ticker.",
-      "metadata": {
-        "ticker": "AAPL"
-      },
-      "content": null
-    }
-  ],
-  "custom_direct_retrieval_endpoints": [],
-  "force_findb_search": false,
-  "force_web_search": false,
-  "messages": [
-    {
-      "role": "human",
-      "content": "What is the most recent OHLCV of AAPL?"
-    }
-  ],
-  "urls": [],
-  "use_docs": false,
-  "user_files": false,
-  "widgets": []
-}
-```
-
-In this scenario:
-
-- The `allow_direct_retrieval` is true, which means that the copilot can attempt to directly fetch data using the context or available endpoints.
-- The `context` contains information about historical stock prices for AAPL, which the copilot can use to answer the question.
-- `force_findb_search` and `force_web_search` are both false, meaning that the copilot should not perform any additional searches. In our case, our Copilot doesn't even support these features.
-- `messages` contain the user's current question, maintaining the conversational flow.
-  
-The copilot will utilize the available context to fetch the necessary OHLCV data, and if required, make a function call or utilize additional retrieval methods.
-
-``` text
-The most recent Open, High, Low, Close, and Volume (OHLCV) data for Apple Inc. (AAPL) is:
-
-- **Open:** $224.50
-- **High:** $225.69
-- **Low:** $224.055
-- **Close:** $224.14
-- **Volume:** 12,952,911
-
-This is as of October 7, 2024.
-```
-
-### Requesting Widget Data
-
-If a user asks, "What is the current stock price of AAPL?" , Terminal Pro will send the active widgets in your dashboard alongside your query. Your copilot can then emit a `copilotFunctionCall` to retrieve this data if there is a widget that can provide the information.
-
-Request:
-
-```json
-{
-  "messages": [
-    {
-      "role": "human",
-      "content": "What is the current stock price of AAPL?"
-    }
-  ],
-  "widgets": [
-    {
-      "uuid": "c276369e-e469-4689-b5fe-3f8c76f7c45a",
-      "name": "stock price quote widget",
-      "description": "Contains the current stock price of a ticker",
-      "metadata": {
-        "ticker": "AAPL"
-      }
-    }
-  ]
-}
-```
-
-Copilot Response:
-
-```json
-{
-  "event": "copilotFunctionCall",
-  "data": {
-    "function": "get_widget_data",
-    "input_arguments": {
-      "widget_uuid": "c276369e-e469-4689-b5fe-3f8c76f7c45a"
-    }
-  }
-}
-```
