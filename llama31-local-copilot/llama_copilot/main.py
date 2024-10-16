@@ -76,14 +76,19 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
         elif message.role == "human":
             chat_messages.append(UserMessage(content=sanitize_message(message.content)))
 
+    if request.context:
+        chat_messages.insert(1, UserMessage(content=sanitize_message("# Context\n" + str(request.context))))
+
     @chatprompt(
         SystemMessage(SYSTEM_PROMPT),
         *chat_messages,
         model=LitellmChatModel(model="ollama_chat/llama3.1:8b-instruct-q6_K"),
     )
-    async def _llm(context: str) -> AsyncStreamedStr: ...
+    async def _llm() -> AsyncStreamedStr:
+        ...
 
-    result = await _llm(context=request.context)
+
+    result = await _llm()
     return EventSourceResponse(
         content=create_message_stream(result),
         media_type="text/event-stream",
