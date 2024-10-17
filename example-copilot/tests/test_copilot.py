@@ -58,21 +58,12 @@ def test_query_conversation():
 
 
 def test_query_with_context():
-    test_payload = {
-        "messages": [
-            {"role": "human", "content": "What is my favourite food?"},
-        ],
-        "context": [
-            {
-                "uuid": "ff6368ec-a397-4baf-9f5a-fecd9fd797a3",
-                "name": "favourite_food",
-                "description": "The user's favourite food",
-                "data": {
-                    "content": "pizza",
-                },
-            }
-        ],
-    }
+    test_payload_path = (
+        Path(__file__).parent.parent.parent
+        / "test_payloads"
+        / "message_with_context.json"
+    )
+    test_payload = json.load(open(test_payload_path))
     response = test_client.post("/v1/query", json=test_payload)
     captured_stream = _capture_stream_response(response.text)
     assert response.status_code == 200
