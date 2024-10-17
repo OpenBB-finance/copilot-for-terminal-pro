@@ -351,6 +351,22 @@ files = [
 ]
 
 [[package]]
+name = "common"
+version = "0.1.0"
+description = "Common models and utilities for custom copilot examples"
+optional = false
+python-versions = "^3.10"
+files = []
+develop = true
+
+[package.dependencies]
+pydantic = "^2.9.2"
+
+[package.source]
+type = "directory"
+url = "../common"
+
+[[package]]
 name = "distro"
 version = "1.9.0"
 description = "Distro - an OS platform information API"
@@ -2157,4 +2173,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "571885985bce556c70d7f87caf7ba34404384b6a61c65349990495bddb9bf02f"
+content-hash = "26c495b25ccb9b6ba0a5f66801fc10a5964a7503db5df8ab86eac2cffcd68253"

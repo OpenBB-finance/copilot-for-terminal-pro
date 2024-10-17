@@ -16,6 +16,7 @@ sse-starlette = "^2.1.2"
 magentic = {extras = ["litellm"], version = "^0.32.0"}
 litellm = "^1.48.19"
 aiohttp = "^3.10.9"
+common = {path = "../common", develop = true}
 
 
 [tool.poetry.group.development.dependencies]
