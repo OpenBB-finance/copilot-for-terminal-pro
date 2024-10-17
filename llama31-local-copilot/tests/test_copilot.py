@@ -83,7 +83,7 @@ def test_query_conversation(mock_get_llm):
     assert "4" in captured_stream
 
 
-def test_query_with_context():
+def test_query_with_context(mock_get_llm):
     test_payload_path = (
         Path(__file__).parent.parent.parent
         / "test_payloads"
