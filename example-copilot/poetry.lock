@@ -76,7 +76,7 @@ description = "Common models and utilities for custom copilot examples"
 optional = false
 python-versions = "^3.10"
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 pydantic = "^2.9.2"
@@ -723,4 +723,4 @@ standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "3b69b9419a5d2e2e93f7676a5dccbffa746bfc0f59fb7ac84f614861fa27f9a1"
+content-hash = "0d0ba646f809aa760965702572cfbbd6ae394c33ceda1369bd1d50c388a6d57d"

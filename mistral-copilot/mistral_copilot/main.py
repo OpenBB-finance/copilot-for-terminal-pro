@@ -18,7 +18,7 @@ from magentic.chat_model.mistral_chat_model import MistralChatModel
 from sse_starlette.sse import EventSourceResponse
 
 from dotenv import load_dotenv
-from .models import (
+from common.models import (
     AgentQueryRequest,
     FunctionCallResponse,
     FunctionCallSSE,

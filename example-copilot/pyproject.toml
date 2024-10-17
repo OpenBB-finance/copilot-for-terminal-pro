@@ -7,13 +7,13 @@ readme = "README.md"
 package-mode = false
 [tool.poetry.dependencies]
 python = "^3.10"
-common = { path = "../common" }
 fastapi = "^0.115.0"
 uvicorn = "^0.27.0.post1"
 python-dotenv = "^1.0.1"
 httpx = "^0.26.0"
 sse-starlette = "^2.1.2"
 magentic = "^0.32.0"
+common = {path = "../common", develop = true}
 
 
 [tool.poetry.group.development.dependencies]

@@ -369,6 +369,22 @@ files = [
 ]
 
 [[package]]
+name = "common"
+version = "0.1.0"
+description = "Common models and utilities for custom copilot examples"
+optional = false
+python-versions = "^3.10"
+files = []
+develop = true
+
+[package.dependencies]
+pydantic = "^2.9.2"
+
+[package.source]
+type = "directory"
+url = "../common"
+
+[[package]]
 name = "decorator"
 version = "5.1.1"
 description = "Decorators for Humans"
@@ -2409,4 +2425,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "1f8b2e88725ad1854846a501793f45694105d05eb9c19f269ef1c3f2f59bc7ae"
+content-hash = "fbb9949dc6954722f5b2dec40ce65d1acb50bc084403d6d2225193dffacd7fcf"
