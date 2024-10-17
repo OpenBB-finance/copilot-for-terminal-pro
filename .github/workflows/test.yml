@@ -61,3 +61,32 @@ jobs:
         run: |
           cd mistral-copilot
           poetry run pytest tests
+  llama31-local-copilot:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          cd llama31-local-copilot
+          python -m pip install --upgrade pip
+          poetry install
+      - name: Run Pytest
+        env:
+          CI: "true"
+        run: |
+          cd llama31-local-copilot
+          poetry run pytest tests
