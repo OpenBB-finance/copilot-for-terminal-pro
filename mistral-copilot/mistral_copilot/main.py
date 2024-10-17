@@ -18,7 +18,7 @@ from magentic.chat_model.mistral_chat_model import MistralChatModel
 from sse_starlette.sse import EventSourceResponse
 
 from dotenv import load_dotenv
-from .models import (
+from common.models import (
     AgentQueryRequest,
     FunctionCallResponse,
     FunctionCallSSE,
@@ -163,8 +163,9 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
             temperature=0.2,
         ),
     )
-    async def copilot(widgets: str, context: str) -> FunctionCall | AsyncStreamedStr:
-        ...
+    async def copilot(
+        widgets: str, context: str
+    ) -> FunctionCall | AsyncStreamedStr: ...
 
     # Query LLM
     response = await copilot(widgets=widgets_str, context=context_str)

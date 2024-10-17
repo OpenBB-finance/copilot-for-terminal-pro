@@ -1,0 +1,15 @@
+{
+    "messages": [
+        {"role": "human", "content": "What is my favourite food?"}
+    ],
+    "context": [
+        {
+            "uuid": "ff6368ec-a397-4baf-9f5a-fecd9fd797a3",
+            "name": "favourite_food",
+            "description": "The user's favourite food",
+            "data": {
+                "content": "pizza"
+            }
+        }
+    ]
+}

@@ -16,7 +16,7 @@ from magentic import (
 from sse_starlette.sse import EventSourceResponse
 
 from dotenv import load_dotenv
-from .models import AgentQueryRequest
+from common.models import AgentQueryRequest
 from .prompts import SYSTEM_PROMPT
 
 
@@ -76,8 +76,7 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
             chat_messages.append(UserMessage(content=sanitize_message(message.content)))
 
     @chatprompt(SystemMessage(SYSTEM_PROMPT), *chat_messages)
-    async def _llm(context: str) -> AsyncStreamedStr:
-        ...
+    async def _llm(context: str) -> AsyncStreamedStr: ...
 
     result = await _llm(context=request.context)
     return EventSourceResponse(

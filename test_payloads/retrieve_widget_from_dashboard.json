@@ -1,0 +1,15 @@
+{
+    "messages": [
+        {
+            "role": "human",
+            "content": "what is the weather in London?"
+        }
+    ],
+    "widgets": [
+        {
+            "uuid": "ff6368ec-a397-4baf-9f5a-fecd9fd797a3",
+            "name": "get_weather",
+            "description": "Get the weather for a location"
+        }
+    ]
+}

@@ -1,7 +1,8 @@
-import json
 from typing import Any, Literal
-from pydantic import BaseModel, Field, field_validator, validator
+from uuid import UUID
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
+import json
 
 
 class RoleEnum(str, Enum):
@@ -49,6 +50,23 @@ class LlmMessage(BaseModel):
                 return v
 
 
+class DataContent(BaseModel):
+    content: Any = Field(description="The data content of the widget")
+
+
+class RawContext(BaseModel):
+    uuid: UUID = Field(description="The UUID of the widget.")
+    name: str = Field(description="The name of the widget.")
+    description: str = Field(
+        description="A description of the data contained in the widget"
+    )
+    data: DataContent = Field(description="The data content of the widget")
+    metadata: dict[str, Any] | None = Field(
+        default=None,
+        description="Additional widget metadata (eg. the selected ticker, etc)",
+    )
+
+
 class Widget(BaseModel):
     uuid: str = Field(description="The UUID of the widget.")
     name: str = Field(description="The name of the widget.")
@@ -61,15 +79,11 @@ class Widget(BaseModel):
     )
 
 
-class ContextualWidget(Widget):
-    content: str = Field(description="The data content of the widget")
-
-
 class AgentQueryRequest(BaseModel):
     messages: list[LlmFunctionCallResult | LlmMessage] = Field(
         description="A list of messages to submit to the copilot."
     )
-    context: str | list[ContextualWidget] | None = Field(
+    context: str | list[RawContext] | None = Field(
         default=None, description="Additional context."
     )
     use_docs: bool = Field(
@@ -79,7 +93,8 @@ class AgentQueryRequest(BaseModel):
         default=None, description="A list of widgets for the copilot to consider."
     )
 
-    @validator("messages")
+    @field_validator("messages")
+    @classmethod
     def check_messages_not_empty(cls, value):
         if not value:
             raise ValueError("messages list cannot be empty.")
@@ -105,7 +120,7 @@ class BaseSSE(BaseModel):
 
 
 class FunctionCallSSEData(BaseModel):
-    function: Literal["get_widget_data", "get_direct_retrieval_data"]
+    function: Literal["get_widget_data"]
     input_arguments: dict
     copilot_function_call_arguments: dict | None = Field(
         default=None,
