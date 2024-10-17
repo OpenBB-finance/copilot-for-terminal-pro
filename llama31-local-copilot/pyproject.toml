@@ -16,11 +16,10 @@ sse-starlette = "^2.1.2"
 magentic = {extras = ["litellm"], version = "^0.32.0"}
 litellm = "^1.48.19"
 aiohttp = "^3.10.9"
-starlette = "0.40.0"
 
 
 [tool.poetry.group.development.dependencies]
-ruff = "^0.1.15"
+ruff = "^0.6.9"
 pytest = "^8.3.1"
 pytest-asyncio = "^0.23.8"
 

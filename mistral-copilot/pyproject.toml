@@ -18,7 +18,6 @@ litellm = "^1.48.19"
 openai = "^1.37.0"
 sse-starlette = "^2.1.2"
 aiohttp = "^3.10.9"
-starlette = "0.40.0"
 
 
 [tool.poetry.group.development.dependencies]
