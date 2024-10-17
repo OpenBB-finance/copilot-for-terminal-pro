@@ -27,8 +27,9 @@ def test_query():
     test_payload = json.load(open(test_payload_path))
 
     response = test_client.post("/v1/query", json=test_payload)
-    captured_stream = capture_stream_response(response.text)
+    event_name, captured_stream = capture_stream_response(response.text)
     assert response.status_code == 200
+    assert event_name == "copilotMessageChunk"
     assert "2" in captured_stream
 
 
@@ -39,8 +40,9 @@ def test_query_conversation():
     test_payload = json.load(open(test_payload_path))
 
     response = test_client.post("/v1/query", json=test_payload)
-    captured_stream = capture_stream_response(response.text)
+    event_name, captured_stream = capture_stream_response(response.text)
     assert response.status_code == 200
+    assert event_name == "copilotMessageChunk"
     assert "4" in captured_stream
 
 
@@ -52,8 +54,9 @@ def test_query_with_context():
     )
     test_payload = json.load(open(test_payload_path))
     response = test_client.post("/v1/query", json=test_payload)
-    captured_stream = capture_stream_response(response.text)
+    event_name, captured_stream = capture_stream_response(response.text)
     assert response.status_code == 200
+    assert event_name == "copilotMessageChunk"
     assert "pizza" in captured_stream.lower()
 
 
