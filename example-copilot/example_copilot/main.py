@@ -16,7 +16,7 @@ from magentic import (
 from sse_starlette.sse import EventSourceResponse
 
 from dotenv import load_dotenv
-from .models import AgentQueryRequest
+from common.models import AgentQueryRequest
 from .prompts import SYSTEM_PROMPT
 
 

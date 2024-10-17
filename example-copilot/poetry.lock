@@ -70,6 +70,22 @@ files = [
 ]
 
 [[package]]
+name = "common"
+version = "0.1.0"
+description = "Common models and utilities for custom copilot examples"
+optional = false
+python-versions = "^3.10"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = "^2.9.2"
+
+[package.source]
+type = "directory"
+url = "../common"
+
+[[package]]
 name = "distro"
 version = "1.9.0"
 description = "Distro - an OS platform information API"
@@ -707,4 +723,4 @@ standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "28a2eb8181c29910f6b8e33497bb7fbfcc24b31e7c313bf698c0d9e62409a028"
+content-hash = "3b69b9419a5d2e2e93f7676a5dccbffa746bfc0f59fb7ac84f614861fa27f9a1"
