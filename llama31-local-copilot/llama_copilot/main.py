@@ -17,7 +17,7 @@ from magentic.chat_model.litellm_chat_model import LitellmChatModel
 from sse_starlette.sse import EventSourceResponse
 
 from dotenv import load_dotenv
-from .models import AgentQueryRequest
+from common.models import AgentQueryRequest
 from .prompts import SYSTEM_PROMPT
 
 
@@ -63,6 +63,17 @@ def get_copilot_description():
     )
 
 
+def _get_llm(chat_messages: list):
+    @chatprompt(
+        SystemMessage(SYSTEM_PROMPT),
+        *chat_messages,
+        model=LitellmChatModel(model="ollama_chat/llama3.1:8b-instruct-q6_K"),
+    )
+    async def _llm() -> AsyncStreamedStr: ...
+
+    return _llm
+
+
 @app.post("/v1/query")
 async def query(request: AgentQueryRequest) -> EventSourceResponse:
     """Query the Copilot."""
@@ -76,15 +87,15 @@ async def query(request: AgentQueryRequest) -> EventSourceResponse:
         elif message.role == "human":
             chat_messages.append(UserMessage(content=sanitize_message(message.content)))
 
-    @chatprompt(
-        SystemMessage(SYSTEM_PROMPT),
-        *chat_messages,
-        model=LitellmChatModel(model="ollama_chat/llama3.1:8b-instruct-q6_K"),
-    )
-    async def _llm(context: str) -> AsyncStreamedStr:
-        ...
+    if request.context:
+        chat_messages.insert(
+            1,
+            UserMessage(content=sanitize_message("# Context\n" + str(request.context))),
+        )
 
-    result = await _llm(context=request.context)
+    llm = _get_llm(chat_messages)
+    result = await llm()
+
     return EventSourceResponse(
         content=create_message_stream(result),
         media_type="text/event-stream",

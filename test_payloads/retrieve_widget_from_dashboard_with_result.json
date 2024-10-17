@@ -1,0 +1,27 @@
+{
+    "messages": [
+        {
+            "role": "human",
+            "content": "what is the weather in London?"
+        },
+        {
+            "role": "ai",
+            "content": "{\"function\": \"get_widget_data\", \"input_arguments\": {\"widget_uuid\": \"ff6368ec-a397-4baf-9f5a-fecd9fd797a3\"}, \"copilot_function_call_arguments\": {\"widget_uuid\": \"ff6368ec-a397-4baf-9f5a-fecd9fd797a3\"}}"
+        },
+        {
+            "role": "tool",
+            "function": "get_widget_data",
+            "input_arguments": {
+                "widget_uuid": "ff6368ec-a397-4baf-9f5a-fecd9fd797a3"
+            },
+            "content": "The weather in London is 10 degrees Celsius."
+        }
+    ],
+    "widgets": [
+        {
+            "uuid": "ff6368ec-a397-4baf-9f5a-fecd9fd797a3",
+            "name": "get_weather",
+            "description": "Get the weather for a location"
+        }
+    ]
+}

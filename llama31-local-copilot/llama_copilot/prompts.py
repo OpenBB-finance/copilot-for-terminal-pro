@@ -10,10 +10,4 @@ Use the following guidelines:
 - Subject-Specific Jargon: Use industry-specific terms, ensuring they are accessible to a general audience through explanations.
 - Narrative Flow: Ensure a logical flow, connecting ideas and points effectively.
 - Incorporate Statistics and Examples: Support points with relevant statistics, examples, or case studies for real-world context.
-
-## Context
-Use the following context to help formulate your answer:
-
-{context}
-
 """
